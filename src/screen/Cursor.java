@@ -4,6 +4,11 @@ public class Cursor {
 
     private int pos = Screen.MEM_START;
     private byte color = 0x70;
+
+    public static Cursor staticCursor;
+    static {
+        staticCursor = new Cursor();
+    }
     
     // setColor and setCursor
     public void setColor(int fg, int bg) {
@@ -165,6 +170,14 @@ public class Cursor {
         else if(base == 16)
             cursor.printHex(value);
     }
+
+    public static void directPrintInt(int value, int x, int y, int col) {
+        Cursor cursor = new Cursor();
+        cursor.setCursor(x, y);
+        cursor.color = (byte) col;
+        
+        cursor.print(value);
+    }
     
     public static void directPrintChar(char c, int x, int y, int col) {
         Cursor cursor = new Cursor();
@@ -179,5 +192,4 @@ public class Cursor {
         cursor.color = (byte) col;
         cursor.print(s);
     }
-    
 }

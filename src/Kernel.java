@@ -1,11 +1,51 @@
 package kernel;
 
 import screen.*;
+import interrupt.*;
 
 public class Kernel {
   public static void main() {
+    MAGIC.doStaticInit();
+    Interrupt.initPic();
     Screen.clear();
 
+    MAGIC.inline(0xCC);
+
+    BIOS.regs.EAX = 0x0013;
+    BIOS.rint(0x10);
+
+    int coord = 0xA0000;
+    for(int y = 0; y < 200; y++) {
+      for(int x = 0; x < 320; x++) {
+        MAGIC.wMem32(coord++, (y * 16 / 200) | 0x20);
+      }
+    }
+
+    sleep(10);
+
+    BIOS.regs.EAX = 0x0003;
+    BIOS.rint(0x10);
+
+    while(true);
+  }
+
+  public static void sleep(int seconds) {
+    // https://wiki.osdev.org/PIT
+    // https://www.visualmicro.com/page/Timer-Interrupts-Explained.aspx
+
+    // TODO
+    while(true) {
+      // Clear interrupt flag; interrupts disabled when interrupt flag cleared
+      MAGIC.inline("cli");
+      if(seconds == 0)
+        break;
+      
+      // Set interrupt flag; external, maskable interrupts enabled at the end of the next instruction
+      MAGIC.inline("sti");
+    }
+  }
+
+  private static void testCursor() {
     Cursor c = new Cursor();
     c.print("Hi there");
 
@@ -44,7 +84,5 @@ public class Kernel {
     c.print("1.000.000.000 = ");
     c.printHex((long) 1000000000);
     c.println();
-
-    while(true);
   }
 }
