@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Winux">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/sjc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Phase3_Fritz_Felix.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -9,7 +9,13 @@ public class Kernel {
     Interrupt.initPic();
     Screen.clear();
 
-    MAGIC.inline(0xCC);
+    // MAGIC.wIOs64(0x71, (byte) 0xFE);
+
+
+    while(true) {
+      Cursor.staticCursor.setCursor(0, 1);
+      Cursor.staticCursor.print(Handler.time);
+    }
 
     BIOS.regs.EAX = 0x0013;
     BIOS.rint(0x10);
@@ -17,11 +23,11 @@ public class Kernel {
     int coord = 0xA0000;
     for(int y = 0; y < 200; y++) {
       for(int x = 0; x < 320; x++) {
-        MAGIC.wMem32(coord++, (y * 16 / 200) | 0x20);
+        MAGIC.wMem32(coord++, (y * 16 / 200) | 0xF0);
       }
     }
 
-    sleep(10);
+    sleep(1);
 
     BIOS.regs.EAX = 0x0003;
     BIOS.rint(0x10);
@@ -33,16 +39,13 @@ public class Kernel {
     // https://wiki.osdev.org/PIT
     // https://www.visualmicro.com/page/Timer-Interrupts-Explained.aspx
 
-    // TODO
-    while(true) {
-      // Clear interrupt flag; interrupts disabled when interrupt flag cleared
-      MAGIC.inline("cli");
-      if(seconds == 0)
-        break;
-      
-      // Set interrupt flag; external, maskable interrupts enabled at the end of the next instruction
-      MAGIC.inline("sti");
-    }
+//    MAGIC.wIOs8(0x70, (byte) 0);
+//    byte seconds = (byte) (MAGIC.rIOs8(0x71) & 0xFF);
+//    byte ts = seconds;
+//    while(seconds + 20 > ts){
+//      MAGIC.wIOs8(0x70, (byte) 0);
+//      ts = (byte) (MAGIC.rIOs8(0x71) & 0xFF);
+//    }
   }
 
   private static void testCursor() {

@@ -4,8 +4,8 @@ import screen.*;
 
 public class Interrupt {
 
-    private final static int MASTER = 0x20;
-    private final static int SLAVE = 0xA0;
+    protected final static int MASTER = 0x20;
+    protected final static int SLAVE = 0xA0;
     private final static int IDT_START = 0x07E00;
 
     public static void initPic() {
@@ -22,7 +22,7 @@ public class Interrupt {
         /*
         Relevant Exceptions and Interrupts (those reserved are marked with a dash '-'):
 
-        hex   | oirigin   | description              | param
+        hex   | origin    | description              | param
         ------+-----------+--------------------------+------------------
         00    | CPU       | DIV Err                  |
         01    | CPU       | Debug Exception          |
@@ -58,6 +58,24 @@ public class Interrupt {
         registerInterrupt(0x0E, MAGIC.mthdOff("Handler", "pageFault"));
         registerInterrupt(0x20, MAGIC.mthdOff("Handler", "timer"));
         registerInterrupt(0x21, MAGIC.mthdOff("Handler", "keyboard"));
+
+        // might have to BlowImage
+        // adding 9 separate methods for handling interrupts works, by the 10th it breaks down
+//        registerInterrupt(0x22, MAGIC.mthdOff("Handler", "dev_22"));
+//        registerInterrupt(0x23, MAGIC.mthdOff("Handler", "dev_23"));
+//        registerInterrupt(0x24, MAGIC.mthdOff("Handler", "dev_24"));
+//        registerInterrupt(0x25, MAGIC.mthdOff("Handler", "dev_25"));
+//        registerInterrupt(0x26, MAGIC.mthdOff("Handler", "dev_26"));
+//        registerInterrupt(0x27, MAGIC.mthdOff("Handler", "dev_27"));
+//        registerInterrupt(0x28, MAGIC.mthdOff("Handler", "dev_28"));
+//        registerInterrupt(0x29, MAGIC.mthdOff("Handler", "dev_29"));
+//        registerInterrupt(0x2A, MAGIC.mthdOff("Handler", "dev_2A"));
+//        registerInterrupt(0x2B, MAGIC.mthdOff("Handler", "dev_2B"));
+//        registerInterrupt(0x2C, MAGIC.mthdOff("Handler", "dev_2C"));
+//        registerInterrupt(0x2D, MAGIC.mthdOff("Handler", "dev_2D"));
+//        registerInterrupt(0x2E, MAGIC.mthdOff("Handler", "dev_2E"));
+//        registerInterrupt(0x2F, MAGIC.mthdOff("Handler", "dev_2F"));
+
         for(int i = 0x22; i <= 0x2F; i++) {
             registerInterrupt(i, MAGIC.mthdOff("Handler", "otherDevices"));
         }
@@ -74,9 +92,11 @@ public class Interrupt {
 
     /**
      * mthdOff should be the offset to the handler method from calling the following:
-     * MAGIC.mthdOff("Interrupt", "method")
+     * MAGIC.mthdOff("Handler", "method")
      */
     public static void registerInterrupt(int interrupt, int mthdOff) {
+        int mthdAddress = MAGIC.rMem32(MAGIC.cast2Ref(MAGIC.clssDesc("Handler")) + mthdOff) + MAGIC.getCodeOff();
+
         /*
         Layout
         P   = Present (is page present, 0 = no, 1 = yes, should be 1)
@@ -86,18 +106,16 @@ public class Interrupt {
         63        48 | 47 | 46  45 | 44 | 43 | 42   40 | 39  37 | 36  32 | 31            16 | 15         0
         Offset 31:16 | P  | DPL    | 0  | D  | 1  1  0 | 0 0 0  | Res    | Segment Selector | Offset 15:00
         */
-        // this throws a "constant too big for int" error
-        //                              48  32  16   0
-        // long descriptor = (long) 0x000000088E000000;
-        // descriptor |= (mthdAddress & 0x0000FFFF) <<< 46;
-        // descriptor |= (mthdAddress & 0xFFFF0000) >>> 16;
-        // MAGIC.wMem64(IDT_START + interrupt * 8, descriptor);
-        int mthdAddress = MAGIC.rMem32(MAGIC.cast2Ref(MAGIC.clssDesc("Handler")) + mthdOff) + MAGIC.getCodeOff();
+        //                    48  32  16   0
+        long descriptor = 0x00008E0000080000L;
+        descriptor |= (mthdAddress & 0xFFFF0000L) << 32;
+        descriptor |= (mthdAddress & 0x0000FFFFL);
+        MAGIC.wMem64(IDT_START + interrupt * 8, descriptor);
 
-        MAGIC.wMem16(IDT_START + interrupt * 8 + 0, (short) (mthdAddress & 0x0000FFFF));
-        MAGIC.wMem16(IDT_START + interrupt * 8 + 2, (short) 0x0008);
-        MAGIC.wMem16(IDT_START + interrupt * 8 + 4, (short) 0x8E00);
-        MAGIC.wMem16(IDT_START + interrupt * 8 + 6, (short) ((mthdAddress & 0xFFFF0000) >>> 16));
+//        MAGIC.wMem16(IDT_START + interrupt * 8 + 0, (short) (mthdAddress & 0x0000FFFF));
+//        MAGIC.wMem16(IDT_START + interrupt * 8 + 2, (short) 0x0008);
+//        MAGIC.wMem16(IDT_START + interrupt * 8 + 4, (short) 0x8E00);
+//        MAGIC.wMem16(IDT_START + interrupt * 8 + 6, (short) ((mthdAddress & 0xFFFF0000) >>> 16));
     }
 
     public static void lidtRM() {

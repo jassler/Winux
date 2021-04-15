@@ -1,3 +1,5 @@
+package java.lang;
+
 import interrupt.Interrupt;
 
 public class BIOS {

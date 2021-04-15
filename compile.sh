@@ -1,0 +1,1 @@
+java -jar sjc.jar src -o boot && /usr/local/Cellar/qemu/5.2.0_1/bin/qemu-system-x86_64 -boot a -fda BOOT_FLP.IMG
