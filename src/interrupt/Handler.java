@@ -1,5 +1,6 @@
 package interrupt;
 
+import keyboard.KeyboardController;
 import screen.*;
 
 public class Handler {
@@ -75,7 +76,8 @@ public class Handler {
     // 0x21
     @SJC.Interrupt
     public static void keyboard() {
-        Cursor.staticCursor.println("Keyboard");
+        KeyboardController.processIOBuffer();
+        MAGIC.wIOs8(Interrupt.MASTER, (byte) 0x20);
     }
 
     // 0x22 - ...
