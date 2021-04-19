@@ -2,7 +2,19 @@ package keyboard;
 
 public class ASCII {
 
+    @SJC.Inline
+    public static boolean isPrintable(int code) {
+        return code == TAB ||
+                code == NEW_LINE ||
+                (SPACE <= code && code <= TILDE);
+    }
+
     public static final int NULL = 0;
+
+    public static final int BACKSPACE = 0x08;
+    public static final int TAB = '\t'; // = 0x09
+    public static final int NEW_LINE = '\n'; // = 0x0A
+    public static final int ESC = 0x1B;
 
     // > 0x21 (33)
     public static final int SPACE = ' ';
@@ -246,5 +258,49 @@ public class ASCII {
     public static final int xFF = 0xff;
 
     // special keys
-    // todo
+    public static final int MENU = 0x101;
+
+    public static final int INSERT = 0x102;
+    public static final int DEL = 0x103;
+    public static final int HOME = 0x104;
+    public static final int END = 0x105;
+
+    public static final int PAGE_UP = 0x106;
+    public static final int PAGE_DOWN = 0x107;
+
+    public static final int ARROW_UP = 0x108;
+    public static final int ARROW_DOWN = 0x109;
+    public static final int ARROW_LEFT = 0x10a;
+    public static final int ARROW_RIGHT = 0x10b;
+
+    public static final int NUMLOCK = 0x10c;
+    public static final int CAPSLOCK = 0x10d;
+    public static final int SCROLLLOCK = 0x10e;
+
+    public static final int PRINT = 0x10f;
+    public static final int PAUSE = 0x110;
+
+    // left/right keys (last bit 0 = left key, 1 = right key)
+    public static final int SHIFT_LEFT = 0x200;
+    public static final int SHIFT_RIGHT = 0x201;
+    public static final int CTRL_LEFT = 0x210;
+    public static final int CTRL_RIGHT = 0x211;
+    public static final int SUPER_LEFT = 0x220;
+    public static final int SUPER_RIGHT = 0x221;
+    public static final int ALT_LEFT = 0x230;
+    public static final int ALT_RIGHT = 0x231;
+
+    // function keys
+    public static final int F1 = 0x300;
+    public static final int F2 = 0x301;
+    public static final int F3 = 0x302;
+    public static final int F4 = 0x303;
+    public static final int F5 = 0x304;
+    public static final int F6 = 0x305;
+    public static final int F7 = 0x306;
+    public static final int F8 = 0x307;
+    public static final int F9 = 0x308;
+    public static final int F10 = 0x309;
+    public static final int F11 = 0x30a;
+    public static final int F12 = 0x30b;
 }

@@ -2,14 +2,14 @@ package screen;
 
 public class Cursor {
 
-    private int pos = Screen.MEM_START;
+    private int pos = Terminal.MEM_START;
     private byte color = 0x70;
 
     public static Cursor staticCursor;
     static {
         staticCursor = new Cursor();
     }
-    
+
     // setColor and setCursor
     public void setColor(int fg, int bg) {
         if(fg < 0 || bg < 0 || fg > 7 || bg > 7)
@@ -20,13 +20,20 @@ public class Cursor {
         // Fct  * |  bg   | * |  fg
         color = (byte) ((bg << 4) | fg);
     }
-    
+
+    public void setColor(byte c) {
+        this.color = c;
+    }
+
+    public byte getColor() {
+        return this.color;
+    }
 
     public void setCursor(int newX, int newY) {
-        if(newX < 0 || newY < 0 || newX >= Screen.WIDTH || newY >= Screen.HEIGHT) {
-            this.pos = Screen.MEM_START;
+        if(  newX < 0 || newY < 0 || newX >= Terminal.COLS || newY >= Terminal.ROWS) {
+            this.pos = Terminal.MEM_START;
         } else {
-            this.pos = Screen.MEM_START + ((newY * Screen.WIDTH * 2) + (newX * 2));
+            this.pos = Terminal.MEM_START + ((newY * Terminal.COLS * 2) + (newX * 2));
         }
     }
     
@@ -38,12 +45,12 @@ public class Cursor {
 
             // crazy arithmetic that 50% of the time works every time
             // maaaaybe switch to x-y-coordinates instead of juggling with memory addresses
-            if(pos >= Screen.MEM_END - (Screen.WIDTH * 2)) {
+            if(pos >= Terminal.MEM_END - (Terminal.COLS * 2)) {
                 // wrap to beginning
-                pos = Screen.MEM_START;
+                pos = Terminal.MEM_START;
             } else {
                 // add remaining space of the line to position
-                pos += (Screen.WIDTH * 2) - ((pos - Screen.MEM_START) % (Screen.WIDTH * 2));
+                pos += (Terminal.COLS * 2) - ((pos - Terminal.MEM_START) % (Terminal.COLS * 2));
             }
             return;
         }
@@ -52,8 +59,8 @@ public class Cursor {
         MAGIC.wMem8(pos++, color);
 
         // loop back to beginning?
-        if(pos >= Screen.MEM_END) {
-            pos = Screen.MEM_START;
+        if(pos >= Terminal.MEM_END) {
+            pos = Terminal.MEM_START;
         }
     }
     

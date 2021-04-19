@@ -10,6 +10,8 @@ public class Color {
     public static final int BROWN = 6;
     public static final int GRAY = 7;
 
+    public static final int BRIGHT = 8;
+
     public static int mix(int foreground, int background) {
         return ((background << 4) | foreground);
     }

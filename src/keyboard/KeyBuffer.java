@@ -24,6 +24,9 @@ public class KeyBuffer {
         return start == end;
     }
 
+    /**
+     * Calculates (!) size of buffer.
+     */
     public int getSize() {
         int size = end - start;
         if (size < 0)
@@ -31,11 +34,14 @@ public class KeyBuffer {
         return size;
     }
 
+    /**
+     * Add KeyEvent to buffer. If buffer is full (size == buffer.length), the last entry is overwritten.
+     */
     public void add(KeyEvent keyEvent) {
         buffer[end++] = keyEvent;
 
         // didn't do modulo arithmetic because
-        // CPU might be more efficient taking likely branches
+        // CPU might be more efficient with branch predictions
         if(end == buffer.length)
             end = 0;
         if(start == end) {
@@ -45,15 +51,27 @@ public class KeyBuffer {
         }
     }
 
+    /**
+     * Get FIFO key event (pop might be misleading, because it's not a stack)
+     *
+     * If buffer is empty, it returns null.
+     */
     public KeyEvent pop() {
         if (isEmpty())
             return null;
-        KeyEvent value = buffer[start++];
-        if(start == buffer.length)
+
+        KeyEvent value = buffer[start];
+        buffer[start] = null;
+        if(++start == buffer.length)
             start = 0;
         return value;
     }
 
+    /**
+     * Get FIFO key event without advancing buffer pointer and thus removing it from the buffer.
+     *
+     * If buffer is empty, it returns null.
+     */
     public KeyEvent peek() {
         if(isEmpty())
             return null;

@@ -1,6 +1,7 @@
 package keyboard;
 
 import keyboard.layout.QWERTY;
+import screen.Cursor;
 
 /**
  * Check http://www.lowlevel.eu/wiki/Keyboard_Controller for detailed explanations and graphics
@@ -15,6 +16,11 @@ public class KeyboardController {
     private static boolean capsLock = false;
     private static boolean numLock = false;
     private static boolean scrollLock = false;
+
+    private static boolean shift = false;
+    private static boolean ctrl = false;
+    private static boolean alt = false;
+
 
     // status variable to handle e0- and e1-scancodes
     private static boolean e0_code = false;
@@ -34,9 +40,9 @@ public class KeyboardController {
         // - highest bit is set
         // - there is no e0 or e1 for extended scancode
         if(
-                ((scancode & 0x80) != 0) &&
-                ((e1_code != 0) || (scancode != 0xE1)) &&
-                (e0_code || (scancode != 0xE0))
+                ((scancode & 0x80) != 0) //&&
+//                ((e1_code != 0) || (scancode != 0xE1)) &&
+//                (e0_code || (scancode != 0xE0))
         ) {
             isBreakCode = true;
             scancode &= ~0x80;
@@ -50,7 +56,7 @@ public class KeyboardController {
                 return;
             }
 
-            mappedKey = QWERTY.mapKey(1, scancode);
+            mappedKey = QWERTY.mapKey(1, scancode, capsLock || shift);
             e0_code = false;
 
         } else if(e1_code == 1) {
@@ -62,7 +68,7 @@ public class KeyboardController {
             // e1 done
             // put second scancode in upper byte
             e1_prev |= scancode << 8;
-            mappedKey = QWERTY.mapKey(2, e1_prev);
+            mappedKey = QWERTY.mapKey(2, e1_prev, capsLock || shift);
             e1_code = 0;
 
         } else if(scancode == 0xE0) {
@@ -75,10 +81,48 @@ public class KeyboardController {
 
         } else {
             // normal scancode
-            keyCode = QWERTY.mapKey(0, scancode);
+            keyCode = QWERTY.mapKey(0, scancode & 0xFF, capsLock || shift);
         }
 
-        keyBuffer.add(new KeyEvent(keyCode, false, false, false, false, false));
+
+        switch(keyCode) {
+            case ASCII.SHIFT_LEFT:
+            case ASCII.SHIFT_RIGHT:
+                shift = !isBreakCode;
+                break;
+
+            case ASCII.CTRL_LEFT:
+            case ASCII.CTRL_RIGHT:
+                ctrl = !isBreakCode;
+                break;
+
+            case ASCII.ALT_LEFT:
+            case ASCII.ALT_RIGHT:
+                alt = !isBreakCode;
+                break;
+
+            case ASCII.CAPSLOCK:
+                if(!isBreakCode)
+                    capsLock = !capsLock;
+                break;
+
+            case ASCII.NUMLOCK:
+                if(!isBreakCode)
+                    numLock = !numLock;
+                break;
+
+            case ASCII.SCROLLLOCK:
+                if(!isBreakCode)
+                    scrollLock = !scrollLock;
+                break;
+
+            default:
+                if(!isBreakCode) {
+                    keyBuffer.add(new KeyEvent(keyCode, false, false));
+                }
+        }
+
+        // keyBuffer.add(new KeyEvent(keyCode, false, false));
     }
 
     public static KeyBuffer getKeyBuffer() {
