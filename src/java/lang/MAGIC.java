@@ -92,6 +92,12 @@ public class MAGIC {
   public static int getRamAddr() { return 0; }
   public static int getRamSize() { return 0; }
   public static int getRamInitAddr() { return 0; }
+
+  /**
+   * Pseudo-Methode zur expliziten Zuweisung eines Objektes im Konstruktor als aktuelle Instanz.
+   * Hauptanwendung sind Konstrkutoren von Klassen mit inline-Arrays, die in Kapitel 8 genauer besprochen werden.
+   * @param newThis
+   */
   public static void useAsThis(Object newThis) {}
   public static int getConstMemorySize() { return 0; }
   public static void doStaticInit() {}

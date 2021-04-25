@@ -60,6 +60,9 @@ public class Terminal {
         char[] result = new char[maxLength];
         int i = 0;
 
+        //enableCursor();
+        updateCursorPos();
+
         while(true) {
             if(!KeyboardController.getKeyBuffer().isEmpty()) {
                 KeyEvent k = KeyboardController.getKeyBuffer().pop();
@@ -95,6 +98,8 @@ public class Terminal {
                         }
                     }
                 }
+
+                updateCursorPos();
             }
         }
     }
@@ -135,33 +140,42 @@ public class Terminal {
      * ------- BLINKING CURSOR SECTION ----------
      */
     public void enableCursor() {
-        MAGIC.wMem8(0x03D4, (byte) 0x0A);
-        int curStart = MAGIC.rMem8(0x3D5) & 0x1F; // get cursor scanline start
+        cursorEnabled = true;
+        MAGIC.wIOs8(0x03D4, (byte) 0x0A);
+        int curStart = MAGIC.rIOs8(0x3D5) & 0x1F; // get cursor scanline start
 
-        MAGIC.wMem8(0x3D4, (byte) 0x0A);
-        MAGIC.wMem8(0x3D5, (byte) (curStart | 0x20)); // set enable bit
+        MAGIC.wIOs8(0x3D4, (byte) 0x0A);
+        MAGIC.wIOs8(0x3D5, (byte) (curStart | 0x20)); // set enable bit
+
+        updateCursorPos();
     }
 
     public  void disableCursor() {
-        MAGIC.wMem8(0x3D4, (byte) 0x0A);
-        MAGIC.wMem8(0x3D5, (byte) 0x20);
+        cursorEnabled = false;
+        MAGIC.wIOs8(0x3D4, (byte) 0x0A);
+        MAGIC.wIOs8(0x3D5, (byte) 0x20);
     }
 
     public void moveCursor(int x, int y) {
         int pos = x + (y * Terminal.COLS);
 
-        MAGIC.wMem8(0x3D4, (byte) 0x0F);
-        MAGIC.wMem8(0x3D5, (byte) (pos & 0xFF));
-        MAGIC.wMem8(0x3D4, (byte) 0x0E);
-        MAGIC.wMem8(0x3D5, (byte) ((pos >> 8) & 0xFF));
+        MAGIC.wIOs8(0x3D4, (byte) 0x0F);
+        MAGIC.wIOs8(0x3D5, (byte) (pos & 0xFF));
+        MAGIC.wIOs8(0x3D4, (byte) 0x0E);
+        MAGIC.wIOs8(0x3D5, (byte) ((pos >> 8) & 0xFF));
+    }
+
+    @SJC.Inline
+    public void updateCursorPos() {
+        moveCursor(x, y);
     }
 
     public int getCursorPosition() {
         int pos = 0;
-        MAGIC.wMem8(0x3D4, (byte) 0x0F);
-        pos |= MAGIC.rMem8(0x3D5);
-        MAGIC.wMem8(0x3D4, (byte) 0x0E);
-        pos |= ((int)MAGIC.rMem8(0x3D5)) << 8;
+        MAGIC.wIOs8(0x3D4, (byte) 0x0F);
+        pos |= MAGIC.rIOs8(0x3D5);
+        MAGIC.wIOs8(0x3D4, (byte) 0x0E);
+        pos |= ((int)MAGIC.rIOs8(0x3D5)) << 8;
         return pos;
     }
     /*
@@ -191,7 +205,8 @@ public class Terminal {
         if((0 <= newX && newX <= tCols) && (0 <= newY && newY <= tRows)) {
             x = newX;
             y = newY;
-            moveCursor(newX, newY);
+            if(cursorEnabled)
+                moveCursor(newX, newY);
         }
     }
 
@@ -210,7 +225,7 @@ public class Terminal {
 
         if(c == '\n') {
             x = 0;
-            if(++y >= tCols)
+            if(++y >= tRows)
                 y = 0;
             return;
         } else if(c == '\t') {

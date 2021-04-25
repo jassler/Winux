@@ -53,12 +53,21 @@ public class PCI {
         all:
         for(int bus = 0; bus < 256; bus++) {
             for(int device = 0; device < 32; device++) {
-                writeAddress(bus, device, 0, 0);
-                long result = MAGIC.rMem64(PCI_DATA);
-                out.printHex(result);
-                out.println();
-
-                // if all 1s, then this device does not exist
+                for(int function = 0; function < 8; function++) {
+                    //writeAddress(bus, device, function, 0);
+                    MAGIC.wIOs32(
+                            0xCF8,
+                            0x80000000 | (bus << 16) | (device << 11) | (function << 8) | (0 << 2)
+                    );
+                    int result = MAGIC.rIOs32(0x0CFC);
+                    if(result != 0) {
+                        out.printHex(result);
+                        out.println();
+                        break all;
+                    }
+                }
+                continue;
+                // if -1 or 0, then this device does not exist
                 if(info.vendorID == (short) 0xFFFF)
                     continue;
 

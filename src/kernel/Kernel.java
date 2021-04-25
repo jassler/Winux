@@ -30,7 +30,7 @@ public class Kernel {
         g.setPtrAndInc((byte) ((y * 16 / 200) | 0x80));
       }
     }
-    g.slapLogoOnTop(1, 0x38, 0x67);
+    g.slapLogoOnTop(0, 0x38, 0x67);
 
 
     sleep(30);

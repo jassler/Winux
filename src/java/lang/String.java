@@ -16,6 +16,10 @@ public class String {
         for(i = 0; i < arr.length; i++)
             value[i] = arr[i];
     }
+//
+//    public String substr(int start, int end) {
+//
+//    }
 
     @SJC.Inline
     public int length() {
