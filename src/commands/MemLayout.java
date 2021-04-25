@@ -38,7 +38,7 @@ public class MemLayout {
 
     // https://wiki.osdev.org/Detecting_Memory_(x86)#Getting_an_E820_Memory_Map
     public static void printMemLayout(Terminal out) {
-        int storeAt = 0x7E00;
+        int storeAt = 0x8000;
 
         out.println("Base Address       | Length             | Type");
 
