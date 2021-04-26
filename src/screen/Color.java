@@ -12,7 +12,8 @@ public class Color {
 
     public static final int BRIGHT = 8;
 
+    @SJC.Inline
     public static int mix(int foreground, int background) {
-        return ((background << 4) | foreground);
+        return (((background & 0x0F) << 4) | (foreground & 0x0F));
     }
 }

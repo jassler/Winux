@@ -1,7 +1,9 @@
 package commands;
 
 import kernel.Kernel;
+import screen.Color;
 import screen.Terminal;
+import utils.StringTemplate;
 
 public class MemLayout {
 
@@ -39,100 +41,64 @@ public class MemLayout {
     // https://wiki.osdev.org/Detecting_Memory_(x86)#Getting_an_E820_Memory_Map
     public static void printMemLayout(Terminal out) {
         int storeAt = 0x8000;
+        BIOS.MemGenerator generator;
+        BIOS.MemorySegment segment;
 
-        out.println("Base Address       | Length             | Type");
+        int c1, c2;
+        boolean even;
+        int currentColor = out.getColor();
 
-        BIOS.regs.EBX = 0;
-        while(true) {
-            BIOS.regs.EAX = 0x0000E820;
-            BIOS.regs.EDX = 0x534D4150; // SMAP
+        StringTemplate templ = new StringTemplate("{18} | {18} | {20}\n");
+        out.setColor(Color.BLACK, Color.GRAY);
 
-            // store result in
-            BIOS.regs.EDI = storeAt;
-            // buffer size >= 20 bytes
-            BIOS.regs.ECX = 24;
+        templ.start(out);
+        templ.p("Base Address").p("Length").p("Type");
 
-            BIOS.rint(0x15);
+        c1 = Color.mix(Color.GRAY | Color.BRIGHT, Color.BLUE);
+        c2 = Color.mix(Color.GRAY | Color.BRIGHT, Color.BLUE | Color.BRIGHT);
+        even = true;
 
-            // is done?
-            if(BIOS.regs.EAX != 0x534D4150 || BIOS.regs.EBX == 0)
-                break;
+        generator = new BIOS.MemGenerator(storeAt);
+        segment = generator.next();
 
-            // error?
-            if((BIOS.regs.FLAGS & BIOS.F_CARRY) != 0) {
-                out.print("Error: Carry flag was set");
-                break;
-            }
+        while(segment != null) {
+            if(even) out.setColor(c1);
+            else out.setColor(c2);
+            even = !even;
 
-            long baseAddress = MAGIC.rMem64(storeAt);
-            long length = MAGIC.rMem64(storeAt + 8);
-            int type = MAGIC.rMem32(storeAt + 16);
-            int acpi = MAGIC.rMem32(storeAt + 20);
+            templ.start(out);
+            templ
+                    .hex0x(segment.baseAddress)
+                    .hex0x(segment.length);
 
-            out.print("0x");
-            out.printHex(baseAddress);
-
-            out.print(" | 0x");
-            out.printHex(length);
-
-            out.print(" | (");
-            out.print(type);
-            out.print(") ");
-            switch(type) {
+            switch(segment.type) {
                 case 1:
-                    out.print("Free Memory");
+                    templ.p("(1) Free Memory");
                     break;
 
                 case 2:
-                    out.print("Reserved Memory");
+                    templ.p("(2) Reserved Memory");
                     break;
 
                 case 3:
-                    out.print("ACPI reclaimable");
+                    templ.p("(3) ACPI reclaimable");
                     break;
 
                 case 4:
-                    out.print("ACPI NVS memory");
+                    templ.p("(4) ACPI NVS memory");
                     break;
 
                 case 5:
-                    out.print("Area containing bad memory");
+                    templ.p("(-) Bad memory");
                     break;
 
                 default:
-                    out.print("Unknown");
+                    templ.p("Unknown");
             }
 
-            out.print(", ACPI = ");
-            out.println(acpi);
-
-            Kernel.sleep(1);
+            segment = generator.next();
         }
-
-//        out.print('|');
-//        out.print("Start address   ");
-//        out.print('|');
-//        out.print("Length          ");
-//        out.println('|');
-//        out.println("===================================");
-//        int continuationIndex = 0;
-//        do {
-//            MemoryMap map = getSystemMemoryMap(continuationIndex);
-//            continuationIndex = BIOS.regs.EBX;
-//
-////            if (map.type != 1)
-////                continue;
-//
-//            out.print('|');
-//            out.printHex(map.baseAddress);
-//            out.print('|');
-//            out.printHex(map.length);
-//            out.print('|');
-//            out.println(map.type);
-//        } while (continuationIndex != 0);
-//        out.println("===================================");
-//        out.println();
-
+        out.setColor(currentColor);
     }
 
 }

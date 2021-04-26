@@ -118,7 +118,10 @@ public class KeyboardController {
 
             default:
                 if(!isBreakCode) {
-                    keyBuffer.add(new KeyEvent(keyCode, false, false));
+                    if(keyCode == 'c' && !alt && ctrl)
+                        MAGIC.inline(0xCC);
+                    keyBuffer.add(new KeyEvent(keyCode, alt, ctrl));
+
                 }
         }
 

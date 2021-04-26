@@ -131,4 +131,5 @@ public class Interrupt {
         MAGIC.wIOs8(port, (byte)icw3);
         MAGIC.wIOs8(port, (byte)0x01);
     }
+
 }

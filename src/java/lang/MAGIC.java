@@ -34,10 +34,37 @@ public class MAGIC {
   public static void inline32(int p1, int p2, int p3, int p4) {}
   public static void inline32(int p1, int p2, int p3, int p4, int p5) {}
   public static void inline32(int p1, int p2, int p3, int p4, int p5, int p6) {}
-  public static void inlineOffset(int p1, double p2) {}
-  public static void inlineOffset(int p1, double p2, int p3) {}
-  public static void inlineOffset(int p1, Object p2) {}
-  public static void inlineOffset(int p1, Object p2, int p3) {}
+
+  /**
+   * Pseudo-Methoden zum Einfügen von Variablenoffsets als Maschinencode.
+   * Diese Methoden werden typischerweise verwendet, um in Inline-Code auf Variablen zugreifen zu können.
+   * @param inlineMode
+   * @param VAR
+   */
+  public static void inlineOffset(int inlineMode, double VAR) {}
+  /**
+   * Pseudo-Methoden zum Einfügen von Variablenoffsets als Maschinencode.
+   * Diese Methoden werden typischerweise verwendet, um in Inline-Code auf Variablen zugreifen zu können.
+   * @param inlineMode
+   * @param VAR
+   * @param baseValue
+   */
+  public static void inlineOffset(int inlineMode, double VAR, int baseValue) {}
+  /**
+   * Pseudo-Methoden zum Einfügen von Variablenoffsets als Maschinencode.
+   * Diese Methoden werden typischerweise verwendet, um in Inline-Code auf Variablen zugreifen zu können.
+   * @param inlineMode
+   * @param VAR
+   */
+  public static void inlineOffset(int inlineMode, Object VAR) {}
+  /**
+   * Pseudo-Methoden zum Einfügen von Variablenoffsets als Maschinencode.
+   * Diese Methoden werden typischerweise verwendet, um in Inline-Code auf Variablen zugreifen zu können.
+   * @param inlineMode
+   * @param VAR
+   * @param baseValue
+   */
+  public static void inlineOffset(int inlineMode, Object VAR, int baseValue) {}
   public static void inlineBlock(String blockName) {}
   public static void wMem64(int addr, long v) {}
   public static long rMem64(int addr) { return 0l; }

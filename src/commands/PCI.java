@@ -1,7 +1,11 @@
 package commands;
 
 import kernel.Kernel;
+import pci.PCIController;
+import pci.PCIDevice;
+import screen.Color;
 import screen.Terminal;
+import utils.StringTemplate;
 
 public class PCI {
 
@@ -10,11 +14,6 @@ public class PCI {
 
     // ...immediately receive data
     public static final int PCI_DATA = 0x0CFC;
-
-    public static PCIInfo info;
-    static {
-        info = (PCIInfo) MAGIC.cast2Struct(PCI_DATA);
-    }
 
     /**
      * Write to PCI address
@@ -49,52 +48,42 @@ public class PCI {
      *
      */
     public static void printPCI(Terminal out) {
-        out.println("Listing devices");
-        all:
-        for(int bus = 0; bus < 256; bus++) {
-            for(int device = 0; device < 32; device++) {
-                for(int function = 0; function < 8; function++) {
-                    //writeAddress(bus, device, function, 0);
-                    MAGIC.wIOs32(
-                            0xCF8,
-                            0x80000000 | (bus << 16) | (device << 11) | (function << 8) | (0 << 2)
-                    );
-                    int result = MAGIC.rIOs32(0x0CFC);
-                    if(result != 0) {
-                        out.printHex(result);
-                        out.println();
-                        break all;
-                    }
-                }
-                continue;
-                // if -1 or 0, then this device does not exist
-                if(info.vendorID == (short) 0xFFFF)
-                    continue;
+        int c1, c2;
+        boolean even;
+        int currentColor = out.getColor();
+        PCIController.DevGenerator generator;
+        StringTemplate templ = new StringTemplate(" {3} | {3} | {3} | {1} {28} | {5} | {8} | {8} ");
 
-//                out.print("bus: ");
-//                out.print(bus);
-//                out.print(", dev number: ");
-//                out.print(device);
-//                out.print(", fct #: ");
-//                out.print(0);
-//                out.print(", basis class: ");
-//                out.printHex(info.basisClassCode);
-//                out.print(", sub class: ");
-//                out.printHex(info.subClasCode);
-//                out.print(", vendor id: ");
-//                out.printHex(info.deviceID);
-//                out.print(", dev id: ");
-//                out.printHex(info.deviceID);
-//                out.println();
-//                Kernel.sleep(5);
-                if(device == 3)
-                    break all;
-            }
+        out.setColor(Color.BLACK, Color.GRAY);
+
+        templ.start(out);
+        templ.p("Bus").p("Dev").p("Fct").p("").p("BaseCC").p("SubCC").p("vendorID").p("deviceID");
+
+        generator = new PCIController.DevGenerator();
+        PCIDevice d = generator.next();
+
+        c1 = Color.mix(Color.GRAY | Color.BRIGHT, Color.BLUE);
+        c2 = Color.mix(Color.GRAY | Color.BRIGHT, Color.BLUE | Color.BRIGHT);
+        even = true;
+
+        while(d != null) {
+            if(even) out.setColor(c1);
+            else out.setColor(c2);
+            even = !even;
+
+            templ.start(out);
+            templ
+                    .p(d.bus)
+                    .p(d.device)
+                    .p(d.function)
+                    .p(d.baseClassCode)
+                    .p(PCIController.getBaseClassCodeDescription(d.baseClassCode))
+                    .p(d.subClassCode)
+                    .p(d.vendorID)
+                    .p(d.deviceID);
+            d = generator.next();
         }
-    }
 
-    public static class PCIInfo extends STRUCT {
-        short deviceID, vendorID, status, command;
-        byte basisClassCode, subClasCode;
+        out.setColor(currentColor);
     }
 }

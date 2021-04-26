@@ -27,7 +27,15 @@ public class Handler {
     // 0x03
     @SJC.Interrupt
     public static void breakpoint() {
-        Cursor.staticCursor.println("Breakpoint Exception");
+        int ebp = 0;
+
+        // get current ebp offset
+        // mov [ebp+xx],ebp
+        MAGIC.inline(0x89,0x6D);
+        MAGIC.inlineOffset(1,ebp);
+        StackTraverser.reset(ebp);
+        BlueScreen.show();
+        while(true);
     }
 
     // 0x04

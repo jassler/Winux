@@ -60,7 +60,7 @@ public class Terminal {
         char[] result = new char[maxLength];
         int i = 0;
 
-        //enableCursor();
+        enableCursor();
         updateCursorPos();
 
         while(true) {
@@ -76,6 +76,7 @@ public class Terminal {
                         for(int j = 0; j < i; j++) {
                             copied[j] = result[j];
                         }
+                        disableCursor();
                         return new String(copied);
 
                     } else if(i < maxLength) {
@@ -144,7 +145,7 @@ public class Terminal {
         MAGIC.wIOs8(0x03D4, (byte) 0x0A);
         int curStart = MAGIC.rIOs8(0x3D5) & 0x1F; // get cursor scanline start
 
-        MAGIC.wIOs8(0x3D4, (byte) 0x0A);
+        MAGIC.wIOs8(0x3D4, (byte) 0x04);
         MAGIC.wIOs8(0x3D5, (byte) (curStart | 0x20)); // set enable bit
 
         updateCursorPos();
@@ -184,9 +185,6 @@ public class Terminal {
 
 
     public void setColor(int fg, int bg) {
-        if(fg < 0 || bg < 0 || fg > 7 || bg > 7)
-            return;
-
         // Layout
         // Bit  7 | 6 5 4 | 3 | 2 1 0
         // Fct  * |  bg   | * |  fg
@@ -329,6 +327,16 @@ public class Terminal {
         for (i=0; i<str.length(); i++) print(str.charAt(i));
     }
 
+    public void print(String str, int start, int end) {
+        int i;
+        if(start < 0)
+            start = 0;
+        if(end > str.length())
+            end = str.length();
+
+        for(i = start; i < end; i++) print(str.charAt(i));
+    }
+
     // println overloads
     public void println() {
         print('\n');
@@ -354,8 +362,8 @@ public class Terminal {
         println();
     }
 
-    private static class TerminalMemory extends STRUCT {
+    public static class TerminalMemory extends STRUCT {
         @SJC(count = Terminal.COLS * Terminal.ROWS)
-        private short[] screen;
+        public short[] screen;
     }
 }

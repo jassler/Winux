@@ -1,11 +1,20 @@
 package java.lang;
 
 import interrupt.Interrupt;
+import screen.Cursor;
 
 public class BIOS {
   private final static int BIOS_MEMORY = 0x60000;
   private final static int BIOS_STKEND = BIOS_MEMORY+0x1000;
   private final static int BIOS_STKBSE = BIOS_STKEND-0x28;
+
+  public final static int TEXT_MODE = 0x0003;
+  public final static int GRAPHICS_MODE = 0x0013;
+
+  public static void switchMode(int mode) {
+    BIOS.regs.EAX = mode;
+    BIOS.rint(0x10);
+  }
   
   public static class BIOSRegs extends STRUCT {
     public short DS, ES, FS, FLAGS;
@@ -194,4 +203,64 @@ public class BIOS {
 
     MAGIC.inline(0x9D); //popf
   }
+
+  public static class MemorySegment {
+    public final long baseAddress;
+    public final long length;
+    public final int type;
+
+    MemorySegment(long baseAddress, long length, int type) {
+      this.baseAddress = baseAddress;
+      this.length = length;
+      this.type = type;
+    }
+  }
+
+
+  public static class MemGenerator {
+    private int ebx = 0;
+    private boolean done = false;
+    private final int storeAt;
+
+    public MemGenerator(int storeAt) {
+      this.storeAt = storeAt;
+    }
+
+    public MemorySegment next() {
+      if(done)
+        return null;
+
+      BIOS.regs.EAX = 0x0000E820;
+      BIOS.regs.EDX = 0x534D4150; // SMAP
+
+      // store result in
+      BIOS.regs.EDI = storeAt;
+      // buffer size >= 20 bytes
+      BIOS.regs.ECX = 20;
+
+      BIOS.rint(0x15);
+
+      ebx = BIOS.regs.EBX;
+
+      // is done?
+      if (BIOS.regs.EAX != 0x534D4150 || BIOS.regs.EBX == 0) {
+        done = true;
+        return null;
+      }
+
+      // error?
+      if ((BIOS.regs.FLAGS & BIOS.F_CARRY) != 0) {
+        done = true;
+        Cursor.staticCursor.print("Error: Carry flag was set");
+        return null;
+      }
+
+      return new MemorySegment(
+              MAGIC.rMem64(storeAt),
+              MAGIC.rMem64(storeAt + 8),
+              MAGIC.rMem32(storeAt + 16)
+      );
+    }
+  }
+
 }

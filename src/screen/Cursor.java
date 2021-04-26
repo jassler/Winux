@@ -11,20 +11,20 @@ public class Cursor {
     }
 
     // setColor and setCursor
+    @SJC.Inline
     public void setColor(int fg, int bg) {
-        if(fg < 0 || bg < 0 || fg > 7 || bg > 7)
-            return;
-        
         // Layout
         // Bit  7 | 6 5 4 | 3 | 2 1 0
         // Fct  * |  bg   | * |  fg
-        color = (byte) ((bg << 4) | fg);
+        color = (byte) Color.mix(fg, bg);
     }
 
+    @SJC.Inline
     public void setColor(byte c) {
         this.color = c;
     }
 
+    @SJC.Inline
     public byte getColor() {
         return this.color;
     }
