@@ -1,7 +1,7 @@
 package java.lang;
 
-import interrupt.Interrupt;
-import screen.Cursor;
+import os.interrupt.Interrupt;
+import os.screen.Cursor;
 
 public class BIOS {
   private final static int BIOS_MEMORY = 0x60000;
