@@ -4,57 +4,59 @@ import os.commands.CC;
 import os.commands.Echo;
 import os.commands.MemLayout;
 import os.commands.PCI;
-import os.screen.*;
-import os.interrupt.*;
+import os.interrupt.Handler;
+import os.interrupt.Interrupt;
+import os.screen.GraphicLogo;
+import os.screen.Terminal;
 
 public class Kernel {
-  public static void main() {
-    MAGIC.doStaticInit();
-    Interrupt.initPic();
+    public static void main() {
+        MAGIC.doStaticInit();
+        Interrupt.initPic();
 
-    Terminal mainTerminal = new Terminal();
-    mainTerminal.enableCursor();
-    mainTerminal.clear();
-    mainTerminal.focus();
+        Terminal mainTerminal = new Terminal();
+        mainTerminal.enableCursor();
+        mainTerminal.clear();
+        mainTerminal.focus();
 
-    BIOS.switchMode(BIOS.GRAPHICS_MODE);
+        BIOS.switchMode(BIOS.GRAPHICS_MODE);
 
-    GraphicLogo.doIntro(1);
-    sleep(30);
+        GraphicLogo.doIntro(1);
+        sleep(30);
 
-    BIOS.switchMode(BIOS.TEXT_MODE);
+        BIOS.switchMode(BIOS.TEXT_MODE);
 
-    while(true) {
-      String cmd = mainTerminal.promptCommand(256);
+        while (true) {
+            String cmd = mainTerminal.promptCommand(256);
 
-      if(cmd.startsWith("echo ")) {
-        Echo.handle(cmd, mainTerminal);
+            if (cmd.startsWith("echo ")) {
+                Echo.handle(cmd, mainTerminal);
 
-      } else if(cmd.startsWith("mem")) {
-        MemLayout.printMemLayout(mainTerminal);
+            } else if (cmd.startsWith("mem")) {
+                MemLayout.printMemLayout(mainTerminal);
 
-      } else if(cmd.startsWith("pci")) {
-        PCI.printPCI(mainTerminal);
+            } else if (cmd.startsWith("pci")) {
+                PCI.printPCI(mainTerminal);
 
-      } else if(cmd.startsWith("cc")) {
-        CC.causeCC();
+            } else if (cmd.startsWith("cc")) {
+                CC.causeCC();
 
-      } else if(cmd.startsWith("help") || cmd.startsWith("?")) {
-        mainTerminal.println("echo [value]    - Print value");
-        mainTerminal.println("mem             - View BIOS memory usage");
-        mainTerminal.println("pci             - View connected PCI devices");
-        mainTerminal.println("cc              - Cause Breakboint interrupt");
-        mainTerminal.println("help            - View help");
-      }
+            } else if (cmd.startsWith("help") || cmd.startsWith("?")) {
+                mainTerminal.println("echo [value]    - Print value");
+                mainTerminal.println("mem             - View BIOS memory usage");
+                mainTerminal.println("pci             - View connected PCI devices");
+                mainTerminal.println("cc              - Cause Breakboint interrupt");
+                mainTerminal.println("help            - View help");
+            }
+        }
     }
-  }
 
-  public static void sleep(int seconds) {
-    // https://wiki.osdev.org/PIT
-    // https://www.visualmicro.com/page/Timer-Interrupts-Explained.aspx
+    public static void sleep(int seconds) {
+        // https://wiki.osdev.org/PIT
+        // https://www.visualmicro.com/page/Timer-Interrupts-Explained.aspx
 
-    Handler.time = 0;
-    while(Handler.time < seconds);
+        Handler.time = 0;
+        while (Handler.time < seconds) ;
 
 //    MAGIC.wIOs8(0x70, (byte) 0);
 //    byte seconds = (byte) (MAGIC.rIOs8(0x71) & 0xFF);
@@ -63,5 +65,5 @@ public class Kernel {
 //      MAGIC.wIOs8(0x70, (byte) 0);
 //      ts = (byte) (MAGIC.rIOs8(0x71) & 0xFF);
 //    }
-  }
+    }
 }
