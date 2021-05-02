@@ -1,10 +1,10 @@
-package os.utils.stringTemplate;
+package os.utils;
 
-public class StringPart {
+public class Range {
 
     public final int start, end;
 
-    public StringPart(int start, int end) {
+    public Range(int start, int end) {
         this.start = start;
         this.end = end;
     }

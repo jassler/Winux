@@ -2,7 +2,7 @@ package os.commands;
 
 import os.screen.Color;
 import os.screen.Terminal;
-import os.utils.StringTemplate;
+import os.utils.stringTemplate.StringTemplate;
 
 public class MemLayout {
 
@@ -47,7 +47,7 @@ public class MemLayout {
         boolean even;
         int currentColor = out.getColor();
 
-        StringTemplate templ = new StringTemplate("{18} | {18} | {20}\n");
+        StringTemplate templ = new StringTemplate("{18cx} | {18cx} | {20r}\n");
         out.setColor(Color.BLACK, Color.GRAY);
 
         templ.start(out);
@@ -66,9 +66,7 @@ public class MemLayout {
             even = !even;
 
             templ.start(out);
-            templ
-                    .hex0x(segment.baseAddress)
-                    .hex0x(segment.length);
+            templ.p(segment.baseAddress).p(segment.length);
 
             switch(segment.type) {
                 case 1:

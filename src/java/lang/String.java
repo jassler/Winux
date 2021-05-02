@@ -5,16 +5,21 @@ public class String {
     private int count;
 
     public String(char[] arr) {
-        int i;
-        // add new instance - only then are instance-variables valid
-        MAGIC.useAsThis(rte.DynamicRuntime.newInstance(
-                MAGIC.getInstScalarSize("String")+(arr.length<<1),
-                MAGIC.getInstRelocEntries("String"), MAGIC.clssDesc("String")
-        ));
+        this.value = arr;
+        this.count = arr.length;
+    }
 
-        count = arr.length;
-        for(i = 0; i < arr.length; i++)
-            value[i] = arr[i];
+    /**
+     * Substring from beginIndex to end.
+     *
+     * No checks if {@code 0 <= start < length()}.
+     *
+     * @param beginIndex inclusive start index
+     * @return new String
+     */
+    @SJC.Inline
+    public String substring(int beginIndex) {
+        return substring(beginIndex, this.count);
     }
 
     /**
@@ -47,6 +52,16 @@ public class String {
                 return i;
         }
         return -1;
+    }
+
+    /**
+     * Get index of character ch. -1 if not found.
+     *
+     * @param ch Character to search
+     * @return index of ch, -1 if not found
+     */
+    public int indexOf(char ch) {
+        return indexOf(ch, 0);
     }
 
     @SJC.Inline

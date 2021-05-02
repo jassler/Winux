@@ -4,7 +4,7 @@ import os.pci.PCIController;
 import os.pci.PCIDevice;
 import os.screen.Color;
 import os.screen.Terminal;
-import os.utils.StringTemplate;
+import os.utils.stringTemplate.StringTemplate;
 
 public class PCI {
 
