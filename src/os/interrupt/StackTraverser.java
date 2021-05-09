@@ -24,9 +24,10 @@ public class StackTraverser {
     @SJC.Inline
     public static boolean next() {
         // read "normal mode"
+        int oldEbp = ebp;
         ebp = MAGIC.rMem32(ebp);
         eip = MAGIC.rMem32(ebp + 4);
-        return ebp <= STACK_ROOT;
+        return ebp <= STACK_ROOT && ebp >= 0 && oldEbp < ebp;
     }
 
     @SJC.Inline

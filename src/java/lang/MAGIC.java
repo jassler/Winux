@@ -202,11 +202,11 @@ public class MAGIC {
     }
 
     public static Object cast2Obj(int addr) {
-        return null;
+        return new Object();
     }
 
     public static Object cast2Obj(long addr) {
-        return null;
+        return new Object();
     }
 
     public static int addr(double i) {

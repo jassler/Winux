@@ -8,3 +8,4 @@ COPYING.txt
 sjc.jar
 syminfo.txt
 *.zip
+.DS_Store

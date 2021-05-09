@@ -1,13 +1,11 @@
 package kernel;
 
-import os.commands.CC;
-import os.commands.Echo;
-import os.commands.MemLayout;
-import os.commands.PCI;
+import os.commands.*;
 import os.interrupt.Handler;
 import os.interrupt.Interrupt;
 import os.screen.GraphicLogo;
 import os.screen.Terminal;
+import rte.DynamicRuntime;
 
 public class Kernel {
     public static void main() {
@@ -40,6 +38,9 @@ public class Kernel {
 
             } else if (cmd.startsWith("cc")) {
                 CC.causeCC();
+
+            } else if (cmd.startsWith("empties")) {
+                PrintEmptyObject.printEmptyObject(mainTerminal);
 
             } else if (cmd.startsWith("help") || cmd.startsWith("?")) {
                 mainTerminal.println("echo [value]    - Print value");

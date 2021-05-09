@@ -168,8 +168,9 @@ public class Terminal {
 //        MAGIC.wIOs8(0x3D5, (byte) (x));
 //        MAGIC.wIOs8(0x3D4, (byte) 0x0E);
 //        MAGIC.wIOs8(0x3D5, (byte) (y));
-        writeCursor(0x0F, x);
-        writeCursor(0x0E, y);
+        int pos = x + (y * COLS);
+        writeCursor(0x0F, pos);
+        writeCursor(0x0E, pos >>> 8);
     }
 
     @SJC.Inline

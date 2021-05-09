@@ -47,7 +47,7 @@ public class MemLayout {
         boolean even;
         int currentColor = out.getColor();
 
-        StringTemplate templ = new StringTemplate("{18cx} | {18cx} | {20r}\n");
+        StringTemplate templ = new StringTemplate(" {18cx} | {18cx} | {20l} \n");
         out.setColor(Color.BLACK, Color.GRAY);
 
         templ.start(out);

@@ -11,6 +11,12 @@ public class BIOS {
     public final static int TEXT_MODE = 0x0003;
     public final static int GRAPHICS_MODE = 0x0013;
 
+    public final static int MEMSEG_TYPE_FREE = 1;
+    public final static int MEMSEG_TYPE_RESERVED = 2;
+    public final static int MEMSEG_TYPE_ACPI_RECLAIMABLE = 3;
+    public final static int MEMSEG_TYPE_ACPI_NVS_MEMORY = 4;
+
+
     public static void switchMode(int mode) {
         BIOS.regs.EAX = mode;
         BIOS.rint(0x10);
@@ -234,6 +240,8 @@ public class BIOS {
             BIOS.regs.EAX = 0x0000E820;
             BIOS.regs.EDX = 0x534D4150; // SMAP
 
+            BIOS.regs.EBX = ebx;
+
             // store result in
             BIOS.regs.EDI = storeAt;
             // buffer size >= 20 bytes
@@ -264,4 +272,82 @@ public class BIOS {
         }
     }
 
+
+    /**
+     * StaticMemoryGenerator
+     *
+     * For object generation in DynamicRuntime, we can't create a new instance of MemoryGenerator
+     * 'cause we'd need the ability to generate objects for that. duh.
+     */
+    public static class SMG {
+        private static int ebx = 0;
+        private static boolean done = false;
+        private static boolean error = false;
+        private static int storeAt = 0x8000;
+
+        public static long baseAddress = -1;
+        public static long length = -1;
+        public static int type = -1;
+
+        public static void reset(int storeAt) {
+            ebx = 0;
+            BIOS.SMG.storeAt = storeAt;
+            done = false;
+            error = false;
+        }
+
+        @SJC.Inline
+        public static boolean isDone() {
+            return done;
+        }
+
+        @SJC.Inline
+        public static boolean hasError() {
+            return error;
+        }
+
+        @SJC.Inline
+        public static boolean isTypeFree() {
+            return type == MEMSEG_TYPE_FREE;
+        }
+
+        public static boolean next() {
+            if (done)
+                return false;
+
+            BIOS.regs.EAX = 0x0000E820;
+            BIOS.regs.EDX = 0x534D4150; // SMAP
+
+            BIOS.regs.EBX = ebx;
+
+            // store result in
+            BIOS.regs.EDI = storeAt;
+            // buffer size >= 20 bytes
+            BIOS.regs.ECX = 20;
+
+            BIOS.rint(0x15);
+
+            ebx = BIOS.regs.EBX;
+
+            // is done?
+            if (BIOS.regs.EAX != 0x534D4150 || BIOS.regs.EBX == 0) {
+                done = true;
+                return false;
+            }
+
+            // error?
+            if ((BIOS.regs.FLAGS & BIOS.F_CARRY) != 0) {
+                done = true;
+                error = true;
+                MAGIC.inline(0xCC);
+                return false;
+            }
+
+            baseAddress = MAGIC.rMem64(storeAt);
+            length = MAGIC.rMem64(storeAt + 8);
+            type = MAGIC.rMem32(storeAt + 16);
+
+            return true;
+        }
+    }
 }

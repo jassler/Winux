@@ -51,7 +51,7 @@ public class PCI {
         boolean even;
         int currentColor = out.getColor();
         PCIController.DevGenerator generator;
-        StringTemplate templ = new StringTemplate(" {3} | {3} | {3} | {1} {28} | {5} | {8} | {8} ");
+        StringTemplate templ = new StringTemplate(" {3r} | {3r} | {3r} | {1} {28c} | {5r} | {8r} | {8r} ");
 
         out.setColor(Color.BLACK, Color.GRAY);
 

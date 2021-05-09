@@ -4,54 +4,173 @@ public class DynamicRuntime {
 
     //private static int nextFreeAddress = (MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase+4)+0xFFF)&~0xFFF;
     //private static int nextFreeAddress = MAGIC.rMem32(MAGIC.imageBase + 16);
-    private static int nextFreeAddress;
-    private static Object prev = null;
+//    private static int nextFreeAddress;
+//    private static Object prev = null;
 
-    public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
-        int start, rs, i;
+    public static EmptyObject firstEmptyObject = null;
 
-        // generated object
-        Object me;
-
-        if (nextFreeAddress == 0) {
-            nextFreeAddress = (MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4) + 0xFFF) & ~0xFFF;
+    @SJC.Inline
+    private static Object findLastObject() {
+        Object obj = MAGIC.cast2Obj(MAGIC.imageBase + 16);
+        while(obj._r_next != null) {
+            obj = obj._r_next;
         }
-
-        rs = relocEntries << 2;
-        scalarSize = (scalarSize + 3) & ~3;
-
-        // memory boundaries
-        start = nextFreeAddress;
-        nextFreeAddress += rs + scalarSize;
-
-        // initialize with 0
-        for (i = start; i < nextFreeAddress; i += 4)
-            MAGIC.wMem32(i, 0);
-
-        // initialize object
-        me = MAGIC.cast2Obj(start + rs);
-        MAGIC.assign(me._r_relocEntries, relocEntries);
-        MAGIC.assign(me._r_scalarSize, scalarSize);
-        MAGIC.assign(me._r_type, type);
-
-        if (prev != null) {
-            MAGIC.assign(prev._r_next, me);
-        }
-        prev = me;
-
-        return me;
+        return obj;
     }
 
-    // public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
-    //   MAGIC.inline(0xCC); //TODO remove this line
-    //   //TODO calculate memory requirements
-    //   //TODO allocate requested memory
-    //   //TODO clear allocated memory
-    //   //TODO calculate object address inside allocated memory
-    //   //TODO fill kernel fields of object
-    //   //TODO return object instead of null
-    //   return null;
-    // }
+    public static void initEmptyObjects() {
+        int from, to, next, i, baseAddr;
+        boolean overwritingImageBase;
+        Object lastObject, newObject;
+        EmptyObject emptyObj;
+
+        // offset 16: points to first object in heap
+        baseAddr = MAGIC.imageBase + 16;
+
+        BIOS.SMG.reset(0x8000);
+
+        while(BIOS.SMG.next()) {
+            if(!BIOS.SMG.isTypeFree())
+                continue;
+
+            from = (int) BIOS.SMG.baseAddress;
+            to = from + (int) BIOS.SMG.length;
+
+            // make sure we're not overwriting imageBase
+            overwritingImageBase = (from <= baseAddr) && (baseAddr < to);
+            if(overwritingImageBase) {
+
+                // reach last object chain
+                lastObject = findLastObject();
+
+                next = MAGIC.cast2Ref(lastObject) + lastObject._r_scalarSize;
+                for(i = next; i < next + 20; i++) {
+                    MAGIC.wMem8(i, (byte) 0);
+                }
+
+                // each of the three _r_ attribute in Object takes 4 bytes
+                next += 12;
+
+                // allocate object
+                newObject = MAGIC.cast2Obj(next);
+                MAGIC.assign(newObject._r_relocEntries, 3);
+                MAGIC.assign(newObject._r_type, MAGIC.clssDesc("EmptyObject"));
+
+                // make sure to reserve the entire memory available
+                MAGIC.assign(newObject._r_scalarSize, (int) BIOS.SMG.length);
+
+                // update old object pointer
+                MAGIC.assign(lastObject._r_next, newObject);
+
+                if(firstEmptyObject == null) {
+                    // (?) haven't reached this branch yet
+                    firstEmptyObject = (EmptyObject) newObject;
+
+                } else {
+                    // find last empty object
+                    emptyObj = firstEmptyObject;
+                    while(emptyObj.next != null)
+                        emptyObj = emptyObj.next;
+
+                    emptyObj.next = (EmptyObject) newObject;
+                    MAGIC.assign(emptyObj._r_next, MAGIC.cast2Obj(baseAddr));
+                }
+            } else {
+                next = baseAddr;
+                for(i = next; i < next + 20; i++) {
+                    MAGIC.wMem8(i, (byte) 0);
+                }
+
+                next += 12;
+
+                // allocate object
+                newObject = MAGIC.cast2Obj(next);
+                MAGIC.assign(newObject._r_relocEntries, 3);
+                MAGIC.assign(newObject._r_type, MAGIC.clssDesc("EmptyObject"));
+
+                // make sure to reserve the entire memory available
+                MAGIC.assign(newObject._r_scalarSize, (int) BIOS.SMG.length);
+
+                if(firstEmptyObject == null) {
+                    firstEmptyObject = (EmptyObject) newObject;
+                    lastObject = findLastObject();
+                    MAGIC.assign(lastObject._r_next, newObject);
+
+                } else {
+                    // (?) haven't reached this branch yet
+                    // find last empty object
+                    emptyObj = firstEmptyObject;
+                    while(emptyObj.next != null)
+                        emptyObj = emptyObj.next;
+
+                    emptyObj.next = (EmptyObject) newObject;
+                    MAGIC.assign(emptyObj._r_next, MAGIC.cast2Obj(baseAddr));
+                }
+            }
+        }
+    }
+
+    public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
+        int sizeRequired, rs;
+        EmptyObject space;
+
+        if(firstEmptyObject == null)
+            initEmptyObjects();
+
+        // do we take the risk that we may not have found any free disk space and firstEmptyObject therefore is null?
+        // ...... yes.
+
+        // find empty object that is big enough
+        space = firstEmptyObject;
+
+        scalarSize = (scalarSize + 3) & ~3;
+        rs = relocEntries << 2;
+        sizeRequired = scalarSize + rs + 16;
+
+        // subtract space taken by empty object scalar header size
+        while((space._r_scalarSize - 8) < sizeRequired) {
+            space = space.next;
+
+            // ran out of memory?
+            if(space == null)
+                MAGIC.inline(0xCC);
+        }
+
+        return space.addObject(scalarSize, sizeRequired, relocEntries, scalarSize, type);
+
+//        int start, rs, i;
+//
+//        // generated object
+//        Object me;
+//
+//        if (nextFreeAddress == 0) {
+//            nextFreeAddress = (MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4) + 0xFFF) & ~0xFFF;
+//        }
+//
+//        rs = relocEntries << 2;
+//        scalarSize = (scalarSize + 3) & ~3;
+//
+//        // memory boundaries
+//        start = nextFreeAddress;
+//        nextFreeAddress += rs + scalarSize;
+//
+//        // initialize with 0
+//        for (i = start; i < nextFreeAddress; i += 4)
+//            MAGIC.wMem32(i, 0);
+//
+//        // initialize object
+//        me = MAGIC.cast2Obj(start + rs);
+//        MAGIC.assign(me._r_relocEntries, relocEntries);
+//        MAGIC.assign(me._r_scalarSize, scalarSize);
+//        MAGIC.assign(me._r_type, type);
+//
+//        if (prev != null) {
+//            MAGIC.assign(prev._r_next, me);
+//        }
+//        prev = me;
+//
+//        return me;
+    }
 
     public static SArray newArray(int length, int arrDim, int entrySize, int stdType,
                                   SClassDesc unitType) { //unitType is not for sure of type SClassDesc

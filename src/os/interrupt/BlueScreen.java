@@ -19,6 +19,7 @@ public class BlueScreen {
         for(i = 0; i < Terminal.COLS * Terminal.ROWS; i++) {
             c.print(' ');
         }
+
         c.println("\u00b3     EBP    \u00b3    EBI     \u00b3");
 
         do {
@@ -30,7 +31,6 @@ public class BlueScreen {
             c.print(" \u00b3\n");
 
         } while(StackTraverser.next());
-        //c.println("└────────────┴────────────┘");
 
     }
 
