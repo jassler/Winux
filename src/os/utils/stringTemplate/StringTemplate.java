@@ -50,6 +50,10 @@ public class StringTemplate {
         this.parts[i] = new Range(current, template.length());
     }
 
+    public int getAmountOfPlaceholders() {
+        return placeholders.length;
+    }
+
     public void start(Terminal out) {
         outIndex = 0;
         this.out = out;

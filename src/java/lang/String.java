@@ -9,6 +9,16 @@ public class String {
         this.count = arr.length;
     }
 
+    public String(char[] arr, int start, int end) {
+        int i;
+        this.count = end - start;
+        this.value = new char[this.count];
+
+        for(i = 0; i < this.count; i++) {
+            this.value[i] = arr[i + start];
+        }
+    }
+
     /**
      * Substring from beginIndex to end.
      * <p>
@@ -81,6 +91,37 @@ public class String {
 
         for (i = 0; i < other.length(); i++) {
             if (this.charAt(i) != other.charAt(i))
+                return false;
+        }
+        return true;
+    }
+
+    public String[] split(char c) {
+        String[] result;
+        int count = 1;
+        int i = 0, j;
+
+        while((i = indexOf(c, i)) >= 0) {
+            count++;
+            i++;
+        }
+
+        result = new String[count];
+        i = j = 0;
+        count = 0;
+        while((j = indexOf(c, j)) >= 0) {
+            result[count] = substring(i, j);
+            i = j + 1;
+        }
+
+        return result;
+    }
+
+    public boolean equals(String other) {
+        if(count != other.count)
+            return false;
+        for (int i = 0; i < count; i++) {
+            if(value[i] != other.value[i])
                 return false;
         }
         return true;

@@ -25,6 +25,7 @@ public class DynamicRuntime {
         EmptyObject emptyObj;
 
         // offset 16: points to first object in heap
+        // übungsblatt 2
         baseAddr = MAGIC.imageBase + 16;
 
         BIOS.SMG.reset(0x8000);
@@ -44,7 +45,7 @@ public class DynamicRuntime {
                 lastObject = findLastObject();
 
                 next = MAGIC.cast2Ref(lastObject) + lastObject._r_scalarSize;
-                for(i = next; i < next + 20; i++) {
+                for(i = next; i < next + 16; i++) {
                     MAGIC.wMem8(i, (byte) 0);
                 }
 
@@ -77,7 +78,7 @@ public class DynamicRuntime {
                 }
             } else {
                 next = baseAddr;
-                for(i = next; i < next + 20; i++) {
+                for(i = next; i < next + 16; i++) {
                     MAGIC.wMem8(i, (byte) 0);
                 }
 

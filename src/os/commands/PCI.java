@@ -4,9 +4,10 @@ import os.pci.PCIController;
 import os.pci.PCIDevice;
 import os.screen.Color;
 import os.screen.Terminal;
+import os.tasks.CommandTask;
 import os.utils.stringTemplate.StringTemplate;
 
-public class PCI {
+public class PCI extends CommandTask {
 
     // write into address register...
     public static final int PCI_ADDRESS = 0x0CF8;
@@ -31,6 +32,21 @@ public class PCI {
                 PCI_ADDRESS,
                 0x80000000 | (busAddress << 16) | (devNumber << 11) | (funcAddress << 8) | (register << 2)
         );
+    }
+
+
+    private StringTemplate templ = new StringTemplate(" {3r} | {3r} | {3r} | {1} {28c} | {5r} | {8r} | {8r} ");
+    private PCIController.DevGenerator generator;
+    private PCIDevice d;
+    private int row;
+
+    private final int rowColors =
+                    (Color.mix(Color.GRAY | Color.BRIGHT, Color.BLUE) << 8) |
+                    Color.mix(Color.GRAY | Color.BRIGHT, Color.BLUE | Color.BRIGHT);
+
+
+    public PCI(Terminal out) {
+        super("pci", "View connected PCI devices", out);
     }
 
 
@@ -83,6 +99,62 @@ public class PCI {
             d = generator.next();
         }
 
+        out.setColor(currentColor);
+    }
+
+    @Override
+    public void setup(String[] args) {
+        generator = new PCIController.DevGenerator();
+        row = -1;
+        setDone(false);
+    }
+
+    @Override
+    public void run() {
+        if(generator == null || isDone())
+            return;
+
+        if(row == -1) {
+            printTitle();
+            row = 0;
+            return;
+        }
+
+        d = generator.next();
+        if(d == null) {
+            setDone(true);
+        } else {
+            printCurrentDevice();
+        }
+    }
+
+    public void printTitle() {
+        int currentColor = out.getColor();
+
+        out.setColor(Color.BLACK, Color.GRAY);
+        templ.start(out);
+        templ.p("Bus").p("Dev").p("Fct").p("").p("BaseCC").p("SubCC").p("vendorID").p("deviceID");
+
+        out.setColor(currentColor);
+    }
+
+    public void printCurrentDevice() {
+        int currentColor = out.getColor();
+
+        out.setColor(rowColors >>> (8 * (row & 0x01)));
+        row++;
+
+        templ.start(out);
+        templ
+                .p(d.bus)
+                .p(d.device)
+                .p(d.function)
+                .p(d.baseClassCode)
+                .p(PCIController.getBaseClassCodeDescription(d.baseClassCode))
+                .p(d.subClassCode)
+                .p(d.vendorID)
+                .p(d.deviceID);
+        d = generator.next();
         out.setColor(currentColor);
     }
 }

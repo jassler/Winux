@@ -22,10 +22,6 @@ public class Terminal {
 
     private int color;
 
-    // custom terminal size in case we might introduce windows or something
-    private int tCols, tRows;
-    private int xOffset, yOffset;
-
     private boolean cursorEnabled;
 
     public Terminal() {
@@ -33,10 +29,6 @@ public class Terminal {
 
         x = y = 0;
         color = Color.mix(Color.GRAY, Color.BLACK);
-
-        xOffset = yOffset = 0;
-        tCols = Terminal.COLS;
-        tRows = Terminal.ROWS;
 
         cursorEnabled = false;
         disableCursor();
@@ -93,7 +85,7 @@ public class Terminal {
                         content[y][x] = 0;
 
                         if(focused == this) {
-                            int index = ((y + yOffset) * Terminal.COLS) + (x + xOffset);
+                            int index = (y * Terminal.COLS) + x;
                             if(0 <= index && index < (Terminal.COLS * Terminal.ROWS))
                                 mem.screen[index] = (short) 0;
                         }
@@ -108,8 +100,8 @@ public class Terminal {
     public void focus() {
         Terminal.focused = this;
         int ptr = 0;
-        for (int y = 0; y < tRows; y++) {
-            for (int x = 0; x < tCols; x++) {
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
                 mem.screen[ptr++] = (byte) content[y][x];
             }
         }
@@ -120,16 +112,16 @@ public class Terminal {
         if(amount < 0) {
             while(amount++ != 0) {
                 if(--x < 0) {
-                    x = tCols - 1;
+                    x = COLS - 1;
                     if(--y < 0)
-                        y = tRows - 1;
+                        y = ROWS - 1;
                 }
             }
         } else if(amount > 0) {
             while(amount-- != 0) {
-                if(++x >= tCols) {
+                if(++x >= COLS) {
                     x = 0;
-                    if(++y >= tRows) {
+                    if(++y >= ROWS) {
                         y = 0;
                     }
                 }
@@ -148,7 +140,6 @@ public class Terminal {
 
     public void enableCursor() {
         cursorEnabled = true;
-        int pos = getCursorPosition();
 //        MAGIC.wIOs8(0x3D4, (byte) 0x0A);
 //        MAGIC.wIOs8(0x3D5, (byte) 0x02);
         writeCursor(0x0A, 0x01);
@@ -199,7 +190,7 @@ public class Terminal {
     }
 
     public void setColor(int c) {
-        this.color = c;
+        this.color = c & 0xFF;
     }
 
     public int getColor() {
@@ -207,7 +198,7 @@ public class Terminal {
     }
 
     public void setPos(int newX, int newY) {
-        if((0 <= newX && newX <= tCols) && (0 <= newY && newY <= tRows)) {
+        if((0 <= newX && newX <= COLS) && (0 <= newY && newY <= ROWS)) {
             x = newX;
             y = newY;
             if(cursorEnabled)
@@ -230,7 +221,7 @@ public class Terminal {
 
         if(c == '\n') {
             x = 0;
-            if(++y >= tRows)
+            if(++y >= ROWS)
                 y = 0;
             return;
         } else if(c == '\t') {
@@ -245,14 +236,14 @@ public class Terminal {
         content[y][x] = value;
 
         if(focused == this) {
-            int index = ((y + yOffset) * Terminal.COLS) + (x + xOffset);
-            if(0 <= index && index < (Terminal.COLS * Terminal.ROWS))
+            int index = (y * Terminal.COLS) + x;
+            if(0 <= index && index < (COLS * ROWS))
                 mem.screen[index] = (short) value;
         }
 
-        if(++x >= tCols) {
+        if(++x >= COLS) {
             x = 0;
-            if(++y >= tRows)
+            if(++y >= ROWS)
                 y = 0;
         }
     }

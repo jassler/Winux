@@ -1,27 +1,53 @@
 package os.commands;
 
+import os.screen.Color;
 import os.screen.Terminal;
+import os.tasks.CommandTask;
 import os.utils.stringTemplate.StringTemplate;
 import rte.DynamicRuntime;
 import rte.EmptyObject;
 
-public class PrintEmptyObject {
+public class PrintEmptyObject extends CommandTask {
 
-    public static void printEmptyObject(Terminal out) {
-        StringTemplate t = new StringTemplate(" {10cx} \u00b3 {10cx}\n");
-        EmptyObject e = DynamicRuntime.firstEmptyObject;
+    private StringTemplate table = new StringTemplate("{10cx} \u00b3 {10cx}\n");
+    private int row;
+    private EmptyObject obj;
 
-        t.start(out);
-        t.p("Start").p("Size");
+    // | 32     16 | 15    08 | 07    00 |
+    // |     -     |    c1    |    c2    |
+    private final int rowColors =
+                    (Color.mix(Color.GRAY | Color.BRIGHT, Color.BLUE) << 8) |
+                    Color.mix(Color.GRAY | Color.BRIGHT, Color.BLUE | Color.BRIGHT);
 
-        while(e != null) {
-
-            out.printHex(MAGIC.cast2Ref(e));
-            out.print(' ');
-            out.printHex(e._r_scalarSize);
-            out.println();
-            e = e.next;
-        }
+    public PrintEmptyObject(Terminal out) {
+        super("empties", "Print empty objects", out);
     }
 
+    @Override
+    public void setup(String[] args) {
+        table.start(out);
+        obj = DynamicRuntime.firstEmptyObject;
+        row = -1;
+        setDone(obj == null);
+    }
+
+    @Override
+    public void run() {
+        int oldColor;
+
+        if(isDone())
+            return;
+
+        if(row == -1) {
+            table.start(out);
+            table.p("Start").p("Size");
+            return;
+        }
+
+        oldColor = out.getColor();
+        out.setColor(rowColors >>> (8 * (row & 0x01)));
+        table.start(out);
+        table.p(MAGIC.cast2Ref(obj)).p(obj._r_scalarSize);
+        obj = obj.next;
+    }
 }
