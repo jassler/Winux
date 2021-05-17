@@ -1,0 +1,1 @@
+zip -r Phase$1_Fritz.zip src BOOT_FLP.IMG compile.sh
