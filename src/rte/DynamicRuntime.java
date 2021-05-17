@@ -1,5 +1,7 @@
 package rte;
 
+import devices.StaticV24;
+
 public class DynamicRuntime {
 
     //private static int nextFreeAddress = (MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase+4)+0xFFF)&~0xFFF;
@@ -9,9 +11,8 @@ public class DynamicRuntime {
 
     public static EmptyObject firstEmptyObject = null;
 
-    @SJC.Inline
     private static Object findLastObject() {
-        Object obj = MAGIC.cast2Obj(MAGIC.imageBase + 16);
+        Object obj = MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
         while(obj._r_next != null) {
             obj = obj._r_next;
         }
@@ -19,14 +20,15 @@ public class DynamicRuntime {
     }
 
     public static void initEmptyObjects() {
-        int from, to, next, i, baseAddr;
-        boolean overwritingImageBase;
-        Object lastObject, newObject;
-        EmptyObject emptyObj;
+        int from, to, i;
+        Object newObject;
+        EmptyObject emptyObj, lastEmptyObj;
 
-        // offset 16: points to first object in heap
-        // übungsblatt 2
-        baseAddr = MAGIC.imageBase + 16;
+        int firstFreeAddress = (MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4) + 0xFFF) & ~0xFFF;
+        lastEmptyObj = null;
+
+        StaticV24.print("EmptyObject relocs: ");
+        StaticV24.println(MAGIC.getInstRelocEntries("EmptyObject"));
 
         BIOS.SMG.reset(0x8000);
 
@@ -37,77 +39,40 @@ public class DynamicRuntime {
             from = (int) BIOS.SMG.baseAddress;
             to = from + (int) BIOS.SMG.length;
 
-            // make sure we're not overwriting imageBase
-            overwritingImageBase = (from <= baseAddr) && (baseAddr < to);
-            if(overwritingImageBase) {
+            if(to < firstFreeAddress)
+                continue;
 
-                // reach last object chain
-                lastObject = findLastObject();
+            if(from < firstFreeAddress)
+                from = firstFreeAddress;
 
-                next = MAGIC.cast2Ref(lastObject) + lastObject._r_scalarSize;
-                for(i = next; i < next + 16; i++) {
-                    MAGIC.wMem8(i, (byte) 0);
-                }
+            for(i = from; i < to; i += 4)
+                MAGIC.wMem32(i, 0);
 
-                // each of the three _r_ attribute in Object takes 4 bytes
-                next += 12;
+            // allocate object
+            newObject = MAGIC.cast2Obj(from + (MAGIC.getInstRelocEntries("EmptyObject") << 2));
+            MAGIC.assign(newObject._r_relocEntries, MAGIC.getInstRelocEntries("EmptyObject"));
+            MAGIC.assign(newObject._r_type, MAGIC.clssDesc("EmptyObject"));
 
-                // allocate object
-                newObject = MAGIC.cast2Obj(next);
-                MAGIC.assign(newObject._r_relocEntries, 3);
-                MAGIC.assign(newObject._r_type, MAGIC.clssDesc("EmptyObject"));
+            // make sure to reserve the entire memory available
+            MAGIC.assign(newObject._r_scalarSize, (int) BIOS.SMG.length);
 
-                // make sure to reserve the entire memory available
-                MAGIC.assign(newObject._r_scalarSize, (int) BIOS.SMG.length);
-
-                // update old object pointer
-                MAGIC.assign(lastObject._r_next, newObject);
-
-                if(firstEmptyObject == null) {
-                    // (?) haven't reached this branch yet
-                    firstEmptyObject = (EmptyObject) newObject;
-
-                } else {
-                    // find last empty object
-                    emptyObj = firstEmptyObject;
-                    while(emptyObj.next != null)
-                        emptyObj = emptyObj.next;
-
-                    emptyObj.next = (EmptyObject) newObject;
-                    MAGIC.assign(emptyObj._r_next, MAGIC.cast2Obj(baseAddr));
-                }
+            emptyObj = (EmptyObject) newObject;
+            emptyObj.prev = emptyObj;
+            if(firstEmptyObject == null) {
+                firstEmptyObject = emptyObj;
+                MAGIC.assign(findLastObject()._r_next, newObject);
             } else {
-                next = baseAddr;
-                for(i = next; i < next + 16; i++) {
-                    MAGIC.wMem8(i, (byte) 0);
+                if(lastEmptyObj == null) {
+                    // this should never occur
+                    lastEmptyObj = firstEmptyObject;
+                    while(lastEmptyObj.next != null)
+                        lastEmptyObj = lastEmptyObj.next;
                 }
 
-                next += 12;
-
-                // allocate object
-                newObject = MAGIC.cast2Obj(next);
-                MAGIC.assign(newObject._r_relocEntries, 3);
-                MAGIC.assign(newObject._r_type, MAGIC.clssDesc("EmptyObject"));
-
-                // make sure to reserve the entire memory available
-                MAGIC.assign(newObject._r_scalarSize, (int) BIOS.SMG.length);
-
-                if(firstEmptyObject == null) {
-                    firstEmptyObject = (EmptyObject) newObject;
-                    lastObject = findLastObject();
-                    MAGIC.assign(lastObject._r_next, newObject);
-
-                } else {
-                    // (?) haven't reached this branch yet
-                    // find last empty object
-                    emptyObj = firstEmptyObject;
-                    while(emptyObj.next != null)
-                        emptyObj = emptyObj.next;
-
-                    emptyObj.next = (EmptyObject) newObject;
-                    MAGIC.assign(emptyObj._r_next, MAGIC.cast2Obj(baseAddr));
-                }
+                lastEmptyObj.next = emptyObj;
             }
+
+            lastEmptyObj = emptyObj;
         }
     }
 
@@ -115,8 +80,9 @@ public class DynamicRuntime {
         int sizeRequired, rs;
         EmptyObject space;
 
-        if(firstEmptyObject == null)
+        if(firstEmptyObject == null) {
             initEmptyObjects();
+        }
 
         // do we take the risk that we may not have found any free disk space and firstEmptyObject therefore is null?
         // ...... yes.
@@ -137,7 +103,7 @@ public class DynamicRuntime {
                 MAGIC.inline(0xCC);
         }
 
-        return space.addObject(scalarSize, sizeRequired, relocEntries, scalarSize, type);
+        return space.addObject(scalarSize, sizeRequired, relocEntries, type);
 
 //        int start, rs, i;
 //
@@ -283,5 +249,62 @@ public class DynamicRuntime {
         if (dest._r_dim > 1) isArray(newEntry, dest._r_stdType, dest._r_unitType, dest._r_dim - 1, true);
         else if (dest._r_unitType == null) MAGIC.inline(0xCC);
         else isInstance(newEntry, dest._r_unitType, true);
+    }
+
+    public static int countStaticObjects() {
+        int count = 0;
+        Object obj = MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
+        int imgEnd = MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4);
+        while(obj != null) {
+            if(MAGIC.cast2Ref(obj) < imgEnd)
+                count++;
+            obj = obj._r_next;
+        }
+
+        return count;
+    }
+
+    public static int countRuntimeObjects() {
+        int count = 0;
+        Object obj = MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
+        int imgEnd = MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4);
+        while(obj != null) {
+            if(MAGIC.cast2Ref(obj) >= imgEnd)
+                count++;
+            obj = obj._r_next;
+        }
+
+        return count;
+    }
+
+    public static int countAllObjects() {
+        int count = 0;
+        Object obj = MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
+        while(obj != null) {
+            count++;
+            obj = obj._r_next;
+        }
+
+        return count;
+    }
+
+
+    public static int countEmptyObjects() {
+        int count = 0;
+        if(firstEmptyObject != null) {
+            count++;
+            EmptyObject iter = firstEmptyObject;
+
+            while (iter.next != null) {
+                count++;
+                iter = iter.next;
+            }
+        }
+        return count;
+    }
+
+    @SJC.Inline
+    public static Object getFirstObject() {
+        return MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
     }
 }

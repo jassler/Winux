@@ -3,8 +3,9 @@ package os.screen;
 import os.keyboard.ASCII;
 import os.keyboard.KeyEvent;
 import os.keyboard.KeyboardController;
+import os.utils.OutStream;
 
-public class Terminal {
+public class Terminal extends OutStream {
     public static final int COLS = 80;
     public static final int ROWS = 25;
 
@@ -25,13 +26,28 @@ public class Terminal {
     private boolean cursorEnabled;
 
     public Terminal() {
+        this((char) 0);
+    }
+
+    public Terminal(char fill) {
+        this(fill, Color.mix(Color.GRAY, Color.BLACK));
+    }
+
+    public Terminal(char fill, int color) {
         content = new int[Terminal.ROWS][Terminal.COLS];
 
         x = y = 0;
-        color = Color.mix(Color.GRAY, Color.BLACK);
+        this.color = color;
 
         cursorEnabled = false;
         disableCursor();
+
+        color <<= 8;
+        for(int y = 0; y < content.length; y++) {
+            for(int x = 0; x < content[y].length; x++) {
+                content[y][x] = (short) (color | fill);
+            }
+        }
     }
 
     @SJC.Inline
@@ -102,9 +118,14 @@ public class Terminal {
         int ptr = 0;
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
-                mem.screen[ptr++] = (byte) content[y][x];
+                mem.screen[ptr++] = (short) content[y][x];
             }
         }
+
+        if(cursorEnabled)
+            enableCursor();
+        else
+            disableCursor();
     }
 
     public void moveCursorHorizontally(int amount) {
@@ -160,6 +181,8 @@ public class Terminal {
 //        MAGIC.wIOs8(0x3D4, (byte) 0x0E);
 //        MAGIC.wIOs8(0x3D5, (byte) (y));
         int pos = x + (y * COLS);
+        this.x = x;
+        this.y = y;
         writeCursor(0x0F, pos);
         writeCursor(0x0E, pos >>> 8);
     }
@@ -246,118 +269,6 @@ public class Terminal {
             if(++y >= ROWS)
                 y = 0;
         }
-    }
-
-
-    public void print(int x) {
-        int reverse, digits;
-
-        if(x < 0) {
-            print('-');
-            x = -x;
-        }
-
-        reverse = 0;
-        digits = 0;
-        do {
-            reverse = (reverse * 10) + (x % 10);
-            x /= 10;
-            digits++;
-        } while(x > 0);
-
-        while(digits-- > 0) {
-            print((char) (reverse % 10 + '0'));
-            reverse /= 10;
-        }
-    }
-
-
-    public void printHex(byte b) {
-        String hexChars = "0123456789ABCDEF";
-        print(hexChars.charAt((b >>> 4) & 0x0F));
-        print(hexChars.charAt(b & 0x0F));
-    }
-
-
-    public void printHex(short s) {
-        printHex((byte) (s >>> 8));
-        printHex((byte) (s & 0xFF));
-    }
-
-
-    public void printHex(int x) {
-        printHex((short) (x >>> 16));
-        printHex((short) (x & 0xFFFF));
-    }
-
-
-    public void printHex(long x) {
-        printHex((int) (x >>> 32));
-        printHex((int) (x & 0xFFFFFFFF));
-    }
-
-
-    public void print(long x) {
-        long reverse, digits;
-
-        if(x < 0) {
-            print('-');
-            x = -x;
-        }
-
-        reverse = 0;
-        digits = 0;
-        do {
-            reverse = (reverse * 10) + (x % 10);
-            x /= 10;
-            digits++;
-        } while(x > 0);
-
-        while(digits-- > 0) {
-            print((char) (reverse % 10 + '0'));
-            reverse /= 10;
-        }
-    }
-
-
-    public void print(String str) {
-        int i;
-        for (i=0; i<str.length(); i++) print(str.charAt(i));
-    }
-
-    public void print(String str, int start, int end) {
-        int i;
-        if(start < 0)
-            start = 0;
-        if(end > str.length())
-            end = str.length();
-
-        for(i = start; i < end; i++) print(str.charAt(i));
-    }
-
-    // println overloads
-    public void println() {
-        print('\n');
-    }
-
-    public void println(char c) {
-        print(c);
-        println();
-    }
-
-    public void println(int i) {
-        print(i);
-        println();
-    }
-
-    public void println(long l) {
-        print(l);
-        println();
-    }
-
-    public void println(String str) {
-        print(str);
-        println();
     }
 
     public static class TerminalMemory extends STRUCT {

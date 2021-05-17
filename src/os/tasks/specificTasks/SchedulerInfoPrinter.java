@@ -1,8 +1,9 @@
-package os.tasks;
+package os.tasks.specificTasks;
 
 import kernel.Kernel;
 import os.screen.Cursor;
 import os.screen.Terminal;
+import os.tasks.Task;
 
 public class SchedulerInfoPrinter extends Task {
     private final Cursor c;

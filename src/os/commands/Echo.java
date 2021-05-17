@@ -29,7 +29,7 @@ public class Echo extends CommandTask {
     @Override
     public void setup(String[] args) {
         this.args = args;
-        this.i = 0;
+        this.i = 1;
         this.setDone(args.length == 0);
     }
 }

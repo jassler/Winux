@@ -23,4 +23,8 @@ public class DelayTask extends Task {
         this.taskToCall.run();
         setDone(true);
     }
+
+    public Task getTaskToCall() {
+        return taskToCall;
+    }
 }

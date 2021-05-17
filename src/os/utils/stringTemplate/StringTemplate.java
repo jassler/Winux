@@ -1,6 +1,8 @@
 package os.utils.stringTemplate;
 
 import os.screen.Terminal;
+import os.utils.NumberHelper;
+import os.utils.OutStream;
 import os.utils.Range;
 
 /**
@@ -9,8 +11,10 @@ import os.utils.Range;
  * Specify placeholder length with number inside curly braces (no space). "{3}" -> placeholder at least of length 3
  * (padding done with spaces). Values are always left aligned.
  *
- * To circumvent missing variadic functions, use {@link StringTemplate#start(Terminal)} to start outputting and
+ * To circumvent missing variadic functions, use {@link StringTemplate#start(OutStream)} to start outputting and
  * use p and hex to fill in the missing gaps.
+ *
+ * Note: lengthMax only works for Strings (eg. "{3<5}" means printed String is at least 3 chars and at most 5 chars wide).
  *
  * Eg.:
  *
@@ -27,7 +31,7 @@ public class StringTemplate {
     private final Range[] parts;
 
     private int outIndex = -1;
-    private Terminal out = null;
+    private OutStream out = null;
 
     public StringTemplate(String template) {
         int i, current;
@@ -54,10 +58,11 @@ public class StringTemplate {
         return placeholders.length;
     }
 
-    public void start(Terminal out) {
+    public StringTemplate start(OutStream out) {
         outIndex = 0;
         this.out = out;
         out.print(templateString, parts[outIndex].start, parts[outIndex].end);
+        return this;
     }
 
     private void nextPart() {
@@ -72,7 +77,11 @@ public class StringTemplate {
         Placeholder p = placeholders[outIndex];
         p.padLeft(out, s.length());
 
-        out.print(s);
+        if(p.lengthMax >= 0) {
+            out.print(s, 0, p.lengthMax);
+        } else {
+            out.print(s);
+        }
 
         p.padRight(out, s.length());
         nextPart();
@@ -81,7 +90,7 @@ public class StringTemplate {
 
     public StringTemplate p(byte n) {
         Placeholder p = placeholders[outIndex];
-        int width = p.isHex ? 4 : NumberWidths.getIntWidth(n);
+        int width = p.isHex ? 4 : NumberHelper.getIntWidth(n);
         p.padLeft(out, width);
 
         if(p.isHex) {
@@ -98,7 +107,7 @@ public class StringTemplate {
 
     public StringTemplate p(short n) {
         Placeholder p = placeholders[outIndex];
-        int width = p.isHex ? 6 : NumberWidths.getIntWidth(n);
+        int width = p.isHex ? 6 : NumberHelper.getIntWidth(n);
         p.padLeft(out, width);
 
         if(p.isHex) {
@@ -115,7 +124,7 @@ public class StringTemplate {
 
     public StringTemplate p(int n) {
         Placeholder p = placeholders[outIndex];
-        int width = p.isHex ? 10 : NumberWidths.getIntWidth(n);
+        int width = p.isHex ? 10 : NumberHelper.getIntWidth(n);
         p.padLeft(out, width);
 
         if(p.isHex) {
@@ -132,7 +141,7 @@ public class StringTemplate {
 
     public StringTemplate p(long n) {
         Placeholder p = placeholders[outIndex];
-        int width = p.isHex ? 18 : NumberWidths.getLongWidth(n);
+        int width = p.isHex ? 18 : NumberHelper.getLongWidth(n);
         p.padLeft(out, width);
 
         if(p.isHex) {

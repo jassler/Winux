@@ -14,4 +14,12 @@ public class File {
         return content.length;
     }
 
+    public int countLines() {
+        int result = 1;
+        for(char c : content) {
+            if(c == '\n')
+                result++;
+        }
+        return result;
+    }
 }

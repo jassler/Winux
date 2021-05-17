@@ -1,9 +1,10 @@
-package os.tasks;
+package os.tasks.specificTasks;
 
 import os.keyboard.ASCII;
 import os.keyboard.KeyEvent;
 import os.keyboard.KeyboardController;
 import os.screen.Terminal;
+import os.tasks.Task;
 
 public class TerminalPrompter extends Task {
     public static final int DEFAULT_BUFFER_SIZE = 128;

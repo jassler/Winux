@@ -41,6 +41,7 @@ public class PrintEmptyObject extends CommandTask {
         if(row == -1) {
             table.start(out);
             table.p("Start").p("Size");
+            row = 0;
             return;
         }
 
@@ -49,5 +50,9 @@ public class PrintEmptyObject extends CommandTask {
         table.start(out);
         table.p(MAGIC.cast2Ref(obj)).p(obj._r_scalarSize);
         obj = obj.next;
+        out.setColor(oldColor);
+        row++;
+
+        setDone(obj == null);
     }
 }

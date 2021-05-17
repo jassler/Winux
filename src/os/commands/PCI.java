@@ -35,7 +35,7 @@ public class PCI extends CommandTask {
     }
 
 
-    private StringTemplate templ = new StringTemplate(" {3r} | {3r} | {3r} | {1} {28c} | {5r} | {8r} | {8r} ");
+    private StringTemplate templ = new StringTemplate(" {3r} \u00b3 {3r} \u00b3 {3r} \u00b3 {1} {28c} \u00b3 {5r} \u00b3 {8r} \u00b3 {8r} ");
     private PCIController.DevGenerator generator;
     private PCIDevice d;
     private int row;
@@ -67,7 +67,7 @@ public class PCI extends CommandTask {
         boolean even;
         int currentColor = out.getColor();
         PCIController.DevGenerator generator;
-        StringTemplate templ = new StringTemplate(" {3r} | {3r} | {3r} | {1} {28c} | {5r} | {8r} | {8r} ");
+        StringTemplate templ = new StringTemplate(" {3r} \u00b3 {3r} \u00b3 {3r} \u00b3 {1} {28c} \u00b3 {5r} \u00b3 {8r} \u00b3 {8r} ");
 
         out.setColor(Color.BLACK, Color.GRAY);
 

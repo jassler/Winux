@@ -1,5 +1,7 @@
 package java.lang;
 
+import os.screen.Cursor;
+
 public class String {
     private char[] value;
     private int count;
@@ -35,14 +37,20 @@ public class String {
     /**
      * Substring from start (inclusive) to end (exclusive).
      * <p>
-     * No checks if {@code end > start} and {@code 0 <= start < length()} and {@code 0 < end <= length()}.
+     * If {@code end > start} and {@code 0 <= start < length()} and {@code 0 < end <= length()},
+     * it returns empty String.
      *
      * @param start inclusive start index
      * @param end   exclusive start index
      * @return new String
      */
     public String substring(int start, int end) {
-        char[] result = new char[end - start];
+        char[] result;
+
+        if(start >= end || start < 0 || end < 0 || start >= count || end > count)
+            return "";
+
+        result = new char[end - start];
         for (int i = start; i < end; i++)
             result[i - start] = value[i];
 
@@ -74,11 +82,23 @@ public class String {
         return indexOf(ch, 0);
     }
 
+    /**
+     * Get length of String
+     *
+     * @return string length
+     */
     @SJC.Inline
     public int length() {
         return count;
     }
 
+    /**
+     * Get character index i.
+     * Throws ArrayIndexOutOfBoundsException if {@code i < 0} or {@code i >= {@link String#length()}}.
+     *
+     * @param i Index
+     * @return Character at specified index
+     */
     @SJC.Inline
     public char charAt(int i) {
         return value[i];
@@ -96,27 +116,59 @@ public class String {
         return true;
     }
 
+    /**
+     * Split String at specified chars. Multiple consecutive chars are ignored.
+     *
+     * {@code "you   only live    once".split(' ')} => {@code {"you", "only", "live", "once}}
+     *
+     * @param c Character to split string at
+     * @return Split string array
+     */
     public String[] split(char c) {
         String[] result;
-        int count = 1;
-        int i = 0, j;
+        int from, to;
+        int argIndex, argTotal;
 
-        while((i = indexOf(c, i)) >= 0) {
-            count++;
-            i++;
+        int startAt = 0;
+        while(startAt < count && value[startAt] == c)
+            startAt++;
+
+        // count number of arguments needed
+        from = startAt;
+        argTotal = 1;
+        while((from = indexOf(c, from)) >= 0) {
+            argTotal++;
+            // skip whitespace
+            while(from < count && value[from] == c) {
+                from++;
+            }
         }
 
-        result = new String[count];
-        i = j = 0;
-        count = 0;
-        while((j = indexOf(c, j)) >= 0) {
-            result[count] = substring(i, j);
-            i = j + 1;
-        }
+        result = new String[argTotal];
 
+        // initialize array indexes
+        from = startAt;
+        for(argIndex = 0; argIndex < argTotal; argIndex++) {
+            to = indexOf(c, from);
+            if(to < 0)
+                to = count;
+
+            result[argIndex] = substring(from, to);
+            // skip whitespace
+            from = to;
+            while(from < count && value[from] == c) {
+                from++;
+            }
+        }
         return result;
     }
 
+    /**
+     * Check if one string's characters equals the other's, including its length.
+     *
+     * @param other Other string to compare against
+     * @return true if length is the same as well the characters inside the string
+     */
     public boolean equals(String other) {
         if(count != other.count)
             return false;
@@ -125,5 +177,14 @@ public class String {
                 return false;
         }
         return true;
+    }
+
+    /**
+     * Get character array of string. Note that changing values of the array changes the values of the string!
+     *
+     * @return char array
+     */
+    public char[] toCharArray() {
+        return value;
     }
 }

@@ -19,6 +19,7 @@ public class KeyboardController {
     private static boolean shift = false;
     private static boolean ctrl = false;
     private static boolean alt = false;
+    private static boolean superKey = false;
 
 
     // status variable to handle e0- and e1-scancodes
@@ -100,6 +101,11 @@ public class KeyboardController {
                 alt = !isBreakCode;
                 break;
 
+            case ASCII.SUPER_LEFT:
+            case ASCII.SUPER_RIGHT:
+                superKey = !isBreakCode;
+                break;
+
             case ASCII.CAPSLOCK:
                 if(!isBreakCode)
                     capsLock = !capsLock;
@@ -119,7 +125,7 @@ public class KeyboardController {
                 if(!isBreakCode) {
                     if(keyCode == 'c' && !alt && ctrl)
                         MAGIC.inline(0xCC);
-                    keyBuffer.add(new KeyEvent(keyCode, alt, ctrl));
+                    keyBuffer.add(new KeyEvent(keyCode, alt, ctrl, superKey));
 
                 }
         }

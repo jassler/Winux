@@ -1,8 +1,10 @@
-package os.tasks;
+package os.tasks.specificTasks;
 
 import kernel.Kernel;
 import kernel.Scheduler;
 import os.screen.Terminal;
+import os.tasks.CommandTask;
+import os.tasks.Task;
 
 public class TerminalTask extends Task {
     private Terminal t;
@@ -49,6 +51,7 @@ public class TerminalTask extends Task {
             if(commandRunning.isDone()) {
                 scheduler.removeTask(commandRunning);
                 commandRunning = null;
+                t.focus();
                 p.startPrompt();
             }
             return;

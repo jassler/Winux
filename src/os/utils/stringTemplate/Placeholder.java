@@ -1,6 +1,6 @@
 package os.utils.stringTemplate;
 
-import os.screen.Terminal;
+import os.utils.OutStream;
 import os.utils.Range;
 
 public class Placeholder {
@@ -8,8 +8,10 @@ public class Placeholder {
     public static final char CENTER = 'c';
     public static final char RIGHT = 'r';
     public static final char IS_HEX = 'x';
+    public static final char LENGTH_MAX = '<';
 
     public final int length;
+    public final int lengthMax;
     public final char orientation;
     // if isHex = true, 0x is printed before number
     public final boolean isHex;
@@ -81,20 +83,40 @@ public class Placeholder {
     public static Placeholder parseNextPlaceholder(String t, Range range) {
         int i;
         Placeholder place = new Placeholder();
+        boolean isMax = false;
 
         for(i = range.start+1; i < range.end; i++) {
-            if('0' <= t.charAt(i) && t.charAt(i) <= '9') {
-                MAGIC.assign(place.length, (place.length * 10) + (t.charAt(i) - '0'));
+            switch(t.charAt(i)) {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    if(isMax)
+                        MAGIC.assign(place.lengthMax, (place.lengthMax * 10) + (t.charAt(i) - '0'));
+                    else
+                        MAGIC.assign(place.length, (place.length * 10) + (t.charAt(i) - '0'));
+                    break;
 
-            } else if(
-                    t.charAt(i) == LEFT ||
-                            t.charAt(i) == CENTER ||
-                            t.charAt(i) == RIGHT
-            ) {
-                MAGIC.assign(place.orientation, t.charAt(i));
+                case LEFT:
+                case CENTER:
+                case RIGHT:
+                    MAGIC.assign(place.orientation, t.charAt(i));
+                    break;
 
-            } else if(t.charAt(i) == IS_HEX) {
-                MAGIC.assign(place.isHex, true);
+                case IS_HEX:
+                    MAGIC.assign(place.isHex, true);
+                    break;
+
+                case LENGTH_MAX:
+                    isMax = true;
+                    break;
+
             }
         }
 
@@ -103,12 +125,14 @@ public class Placeholder {
 
     public Placeholder() {
         this.length = 0;
+        this.lengthMax = -1;
         this.orientation = LEFT;
         this.isHex = false;
     }
 
     public Placeholder(int length, char orientation, boolean isHex) {
         this.length = length;
+        this.lengthMax = -1;
         this.orientation = orientation;
         this.isHex = isHex;
     }
@@ -119,7 +143,7 @@ public class Placeholder {
      * @param out Output object to print whitespaces to
      * @param contentLength Length of placeholder content to determine amount of whitespace needed
      */
-    public void padLeft(Terminal out, int contentLength) {
+    public void padLeft(OutStream out, int contentLength) {
         int spaces = 0;
 
         if(orientation == RIGHT)
@@ -140,7 +164,7 @@ public class Placeholder {
      * @param out Output object to print whitespaces to
      * @param contentLength Length of placeholder content to determine amount of whitespace needed
      */
-    public void padRight(Terminal out, int contentLength) {
+    public void padRight(OutStream out, int contentLength) {
         int spaces = 0;
 
         if(orientation == LEFT)

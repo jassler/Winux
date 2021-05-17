@@ -1,5 +1,7 @@
 package os.filesystem;
 
+import devices.StaticV24;
+
 public class FileSystem {
 
     protected static File[] files;
@@ -27,6 +29,7 @@ public class FileSystem {
     public static boolean add(File f) {
         int i;
         File[] tmp;
+
 
         if(exists(f.filename))
             return false;
@@ -75,5 +78,29 @@ public class FileSystem {
 
         MAGIC.assign(files[i].filename, to);
         return true;
+    }
+
+    public static void overwrite(File file) {
+        delete(file.filename);
+        add(file);
+    }
+
+    @SJC.Inline
+    public static FileTraverser traverse() {
+        return new FileTraverser();
+    }
+
+    public static class FileTraverser {
+        private static int index;
+
+        public FileTraverser() {
+            index = 0;
+        }
+
+        public File next() {
+            if(index >= filePtr)
+                return null;
+            return files[index++];
+        }
     }
 }

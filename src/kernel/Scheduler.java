@@ -2,6 +2,8 @@ package kernel;
 
 import os.screen.Cursor;
 import os.screen.Terminal;
+import os.tasks.DelayTask;
+import os.tasks.LoopTask;
 import os.tasks.Task;
 
 public class Scheduler extends Task {
@@ -77,14 +79,24 @@ public class Scheduler extends Task {
     }
 
     public int getAmountOfTasks() {
-        return ptr;
+        return ptr+1;
     }
 
     public void printInfo(Terminal t) {
         for (int i = 0; i < ptr; i++) {
             t.print(i);
             t.print('=');
-            t.println(tasks[i].getName());
+            t.print(tasks[i].getName());
+
+            if(tasks[i] instanceof DelayTask) {
+                t.print(" -> ");
+                t.print(((DelayTask) tasks[i]).getTaskToCall().getName());
+            } else if(tasks[i] instanceof LoopTask) {
+                t.print(" -> ");
+                t.print(((LoopTask) tasks[i]).getTask().getName());
+            }
+
+            t.println();
         }
     }
 
