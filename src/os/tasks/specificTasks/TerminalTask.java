@@ -67,6 +67,9 @@ public class TerminalTask extends Task {
                     return;
                 }
             }
+            if(p.getCommandInputted().startsWith("clear")) {
+                t.clear();
+            }
             p.startPrompt();
         }
     }

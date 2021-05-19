@@ -40,7 +40,6 @@ public class Terminal extends OutStream {
         this.color = color;
 
         cursorEnabled = false;
-        disableCursor();
 
         color <<= 8;
         for(int y = 0; y < content.length; y++) {
@@ -59,57 +58,6 @@ public class Terminal extends OutStream {
         int i;
         for(i = MEM_START; i < MEM_END; i++) {
             MAGIC.wMem8(i, (byte) 0);
-        }
-    }
-
-    public String promptCommand(int maxLength) {
-        print("> ");
-
-        char[] result = new char[maxLength];
-        int i = 0;
-
-        enableCursor();
-        updateCursorPos();
-
-        while(true) {
-            if(!KeyboardController.getKeyBuffer().isEmpty()) {
-                KeyEvent k = KeyboardController.getKeyBuffer().pop();
-
-                if(ASCII.isPrintable(k.code)) {
-
-                    if(k.code == ASCII.NEW_LINE) {
-                        // done, convert to string
-                        print((char) k.code);
-                        char[] copied = new char[i];
-                        for(int j = 0; j < i; j++) {
-                            copied[j] = result[j];
-                        }
-                        disableCursor();
-                        return new String(copied);
-
-                    } else if(i < maxLength) {
-                        print((char) k.code);
-                        result[i++] = (char) k.code;
-                    }
-
-                } else if(k.code == ASCII.BACKSPACE && i > 0) {
-                    --i;
-                    if(result[i] == ASCII.TAB) {
-                        moveCursorHorizontally(-4);
-                    } else {
-                        moveCursorHorizontally(-1);
-                        content[y][x] = 0;
-
-                        if(focused == this) {
-                            int index = (y * Terminal.COLS) + x;
-                            if(0 <= index && index < (Terminal.COLS * Terminal.ROWS))
-                                mem.screen[index] = (short) 0;
-                        }
-                    }
-                }
-
-                updateCursorPos();
-            }
         }
     }
 

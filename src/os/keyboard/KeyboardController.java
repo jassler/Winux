@@ -9,7 +9,7 @@ public class KeyboardController {
 
     private static KeyBuffer keyBuffer;
     static {
-        keyBuffer = new KeyBuffer();
+       keyBuffer = new KeyBuffer();
     }
 
     private static boolean capsLock = false;

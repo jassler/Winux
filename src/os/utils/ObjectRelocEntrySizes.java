@@ -136,4 +136,75 @@ public class ObjectRelocEntrySizes {
 
         return -1;
     }
+
+    public static void printPossibilities(Terminal out) {
+
+        out.print("FLASH ");
+        out.print("Object ");
+        out.print("String ");
+        out.print("BIOS ");
+        out.print("STRUCT ");
+        out.print("DynamicRuntime ");
+        out.print("SClassDesc ");
+        out.print("SArray ");
+        out.print("SIntfMap ");
+        out.print("EmptyObject ");
+        out.print("SMthdBlock ");
+        out.print("SIntfDesc ");
+        out.print("PCIDevice ");
+        out.print("PCIController ");
+        out.print("TerminalTask ");
+        out.print("TerminalPrompter ");
+        out.print("Counter ");
+        out.print("MarkAndSweep ");
+        out.print("SchedulerInfoPrinter ");
+        out.print("CommandTask ");
+        out.print("DelayTask ");
+        out.print("LoopTask ");
+        out.print("Task ");
+        out.print("Handler ");
+        out.print("Interrupt ");
+        out.print("BlueScreen ");
+        out.print("StackTraverser ");
+        out.print("StringBuffer ");
+        out.print("StringTemplate ");
+        out.print("Placeholder ");
+        out.print("TableFormatter ");
+        out.print("ObjectRelocEntrySizes ");
+        out.print("Range ");
+        out.print("Math ");
+        out.print("OutStream ");
+        out.print("NumberHelper ");
+        out.print("FileSystem ");
+        out.print("FileStream ");
+        out.print("File ");
+        out.print("GraphicLogo ");
+        out.print("Terminal ");
+        out.print("Graphic ");
+        out.print("Color ");
+        out.print("Cursor ");
+        out.print("Help ");
+        out.print("Info ");
+        out.print("LS ");
+        out.print("AddCounter ");
+        out.print("CC ");
+        out.print("MarkAndSweep ");
+        out.print("PrintEmptyObject ");
+        out.print("Echo ");
+        out.print("MemLayout ");
+        out.print("PCI ");
+        out.print("Editor ");
+        out.print("ASCII ");
+        out.print("KeyBuffer ");
+        out.print("KeyboardController ");
+        out.print("QWERTY ");
+        out.print("KeyEvent ");
+        out.print("Scheduler ");
+        out.print("Sample ");
+        out.print("Kernel ");
+        out.print("StaticV24 ");
+
+        out.println();
+    }
 }
+

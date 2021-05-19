@@ -79,6 +79,7 @@ public class DynamicRuntime {
     public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
         int sizeRequired, rs;
         EmptyObject space;
+        Object o;
 
         if(firstEmptyObject == null) {
             initEmptyObjects();
@@ -90,20 +91,17 @@ public class DynamicRuntime {
         // find empty object that is big enough
         space = firstEmptyObject;
 
-        scalarSize = (scalarSize + 3) & ~3;
-        rs = relocEntries << 2;
-        sizeRequired = scalarSize + rs + 16;
+        while(space != null) {
+            o = space.addObject(scalarSize, relocEntries, type);
+            if(o != null)
+                return o;
 
-        // subtract space taken by empty object scalar header size
-        while((space._r_scalarSize - 8) < sizeRequired) {
             space = space.next;
-
-            // ran out of memory?
-            if(space == null)
-                MAGIC.inline(0xCC);
         }
 
-        return space.addObject(scalarSize, sizeRequired, relocEntries, type);
+        // couldn't find EmptyObject with enough space
+        MAGIC.inline(0xCC);
+        return null;
 
 //        int start, rs, i;
 //

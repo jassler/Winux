@@ -3,6 +3,7 @@ package os.commands;
 import kernel.Kernel;
 import os.screen.Terminal;
 import os.tasks.CommandTask;
+import os.utils.ObjectRelocEntrySizes;
 import rte.DynamicRuntime;
 
 public class Info extends CommandTask {
@@ -10,8 +11,10 @@ public class Info extends CommandTask {
     private static final int IMAGE = 0;
     private static final int OBJECTS = 1;
     private static final int TASKS = 2;
+    private static final int RELOC = 3;
 
     private int infoReading;
+    private String more = null;
 
     public Info(Terminal out) {
         super("info", "Get info of [[imageBase|objects|tasks]]", out);
@@ -27,6 +30,10 @@ public class Info extends CommandTask {
                 infoReading = OBJECTS;
             else if(args[1].equals("tasks"))
                 infoReading = TASKS;
+            else if(args[1].equals("reloc")) {
+                infoReading = RELOC;
+                more = (args.length < 3) ? null : args[2];
+            }
         }
 
         if(infoReading == -1) {
@@ -34,6 +41,7 @@ public class Info extends CommandTask {
             out.println("  imageBase    - Information about the image base");
             out.println("  objects      - How many objects have been created");
             out.println("  tasks        - List active tasks");
+            out.println("  reloc [[obj]]- Get relocEntries of object");
             setDone(true);
         } else {
             setDone(false);
@@ -54,6 +62,24 @@ public class Info extends CommandTask {
 
             case TASKS:
                 Kernel.globalScheduler.printInfo(out);
+                break;
+
+            case RELOC:
+                if(more == null) {
+                    out.println("Try one of the following");
+                    ObjectRelocEntrySizes.printPossibilities(out);
+                    break;
+                }
+
+                int size = ObjectRelocEntrySizes.getSizeOf(more);
+                if(size < 0) {
+                    out.print(more);
+                    out.println(" not found, try one of those:");
+                    ObjectRelocEntrySizes.printPossibilities(out);
+                } else {
+                    out.print(size);
+                    out.println(" reloc entries");
+                }
                 break;
         }
 

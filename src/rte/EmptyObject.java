@@ -1,5 +1,7 @@
 package rte;
 
+import devices.StaticV24;
+
 public class EmptyObject {
 
     // the way EmptyObject is initialized, these attributes are not set (!)
@@ -12,13 +14,23 @@ public class EmptyObject {
      *
      * Bit-Shifts and pointer size calculations are expected to have already happened!
      */
-    public Object addObject(int scalarSize, int sizeRequired, int relocEntries, SClassDesc type) {
+    public Object addObject(int scalarSize, int relocEntries, SClassDesc type) {
 
-        int address = MAGIC.cast2Ref(this) + this._r_scalarSize - scalarSize;
-        int i;
+        int i, start, end, address;
         Object me;
-//        (relocEntries << 2) + scalarSize
-        for(i = address; i < address + scalarSize; i += 4) {
+
+        scalarSize = ((scalarSize + 3) & ~3);
+
+        end = MAGIC.cast2Ref(this) + this._r_scalarSize;
+        address = end - scalarSize;
+        start = address - (relocEntries << 2);
+
+        if(start > (MAGIC.cast2Ref(this) + this._r_scalarSize)) {
+            // not enough space
+            return null;
+        }
+
+        for(i = start; i < end; i += 4) {
             MAGIC.wMem32(i, 0);
         }
 
@@ -33,7 +45,7 @@ public class EmptyObject {
         prev = me;
 
         // adjust space size
-        MAGIC.assign(this._r_scalarSize, this._r_scalarSize - sizeRequired);
+        MAGIC.assign(this._r_scalarSize, this._r_scalarSize - (end - start));
 
         return me;
     }

@@ -9,6 +9,7 @@ import os.interrupt.Interrupt;
 import os.screen.Terminal;
 import os.tasks.*;
 import os.tasks.specificTasks.Counter;
+import os.tasks.specificTasks.MarkAndSweep;
 import os.tasks.specificTasks.SchedulerInfoPrinter;
 import os.tasks.specificTasks.TerminalTask;
 
@@ -22,36 +23,37 @@ public class Kernel {
         Interrupt.initPic();
 
 
-        Terminal mainTerminal = new Terminal();
-        mainTerminal.enableCursor();
-        mainTerminal.clear();
-        mainTerminal.focus();
-
         BIOS.switchMode(BIOS.GRAPHICS_MODE);
 
 //        GraphicLogo.doIntro(1);
 //        sleep(30);
 
         BIOS.switchMode(BIOS.TEXT_MODE);
-        globalScheduler = new Scheduler("root");
 
+        Terminal mainTerminal = new Terminal();
+        mainTerminal.enableCursor();
+        mainTerminal.clear();
+        mainTerminal.focus();
+
+        globalScheduler = new Scheduler("root");
         FileSystem.add(new File("test", "lorem ipsum\nthe child who survived\nmr anderson anderson anderson".toCharArray()));
 
         globalScheduler.addTask(new TerminalTask(mainTerminal, globalScheduler, "mainTerminal"));
         globalScheduler.addTask(new SchedulerInfoPrinter("sPrinter"));
         //globalScheduler.addTask(new LoopTask(new MarkAndSweep("mas"), 46, "mas_loop"));
 
-        commands = new CommandTask[10];
+        commands = new CommandTask[11];
         commands[0] = new AddCounter(globalScheduler, mainTerminal);
         commands[1] = new CC();
         commands[2] = new Echo(mainTerminal);
         commands[3] = new Editor();
         commands[4] = new Info(mainTerminal);
         commands[5] = new LS(mainTerminal);
-        commands[6] = new MemLayout(globalScheduler, mainTerminal);
-        commands[7] = new PCI(mainTerminal);
-        commands[8] = new PrintEmptyObject(mainTerminal);
-        commands[9] = new Help(mainTerminal);
+        commands[6] = new MarkAndSweep();
+        commands[7] = new MemLayout(globalScheduler, mainTerminal);
+        commands[8] = new PCI(mainTerminal);
+        commands[9] = new PrintEmptyObject(mainTerminal);
+        commands[10] = new Help(mainTerminal);
 
         globalScheduler.runIndefinitely();
     }
