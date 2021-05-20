@@ -177,6 +177,16 @@ public class Terminal extends OutStream {
         }
     }
 
+    @SJC.Inline
+    public int getX() {
+        return x;
+    }
+
+    @SJC.Inline
+    public int getY() {
+        return y;
+    }
+
     public void writeTo(int tmpX, int tmpY, String s) {
         int xOld = x;
         int yOld = y;

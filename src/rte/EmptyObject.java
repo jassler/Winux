@@ -9,23 +9,22 @@ public class EmptyObject {
     public EmptyObject next = null;
     protected Object prev = this;
 
-    /*
-     * Parameters are assumed to be adjusted for address widths etc.
+    /**
+     * Add new object to EmptyObject. If successful, _r_scalarSize of this EmptyObject
+     * is decreased by the amount of space the object needs.
      *
-     * Bit-Shifts and pointer size calculations are expected to have already happened!
+     * If the requested object does not fit, the method returns null.
      */
     public Object addObject(int scalarSize, int relocEntries, SClassDesc type) {
 
         int i, start, end, address;
         Object me;
 
-        scalarSize = ((scalarSize + 3) & ~3);
-
         end = MAGIC.cast2Ref(this) + this._r_scalarSize;
-        address = end - scalarSize;
+        address = end - ((scalarSize+3)&~3);
         start = address - (relocEntries << 2);
 
-        if(start > (MAGIC.cast2Ref(this) + this._r_scalarSize)) {
+        if(start <= MAGIC.cast2Ref(this)) {
             // not enough space
             return null;
         }

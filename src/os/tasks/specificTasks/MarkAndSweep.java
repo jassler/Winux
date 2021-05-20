@@ -2,9 +2,8 @@ package os.tasks.specificTasks;
 
 import devices.StaticV24;
 import os.tasks.CommandTask;
-import os.tasks.Task;
-import rte.DynamicRuntime;
 import rte.EmptyObject;
+import rte.ImageHelper;
 
 public class MarkAndSweep extends CommandTask {
 
@@ -40,7 +39,7 @@ public class MarkAndSweep extends CommandTask {
         MAGIC.inline(0xFA);
 
         StaticV24.println("Marking objects...");
-        o = DynamicRuntime.getFirstObject();
+        o = ImageHelper.getFirstObject();
         total = 0;
         while(o != null) {
             mark(o);
@@ -53,7 +52,7 @@ public class MarkAndSweep extends CommandTask {
         StaticV24.println(" objects");
 
         StaticV24.println("Checking which ones can be sweeped...");
-        o = DynamicRuntime.getFirstObject();
+        o = ImageHelper.getFirstObject();
         part = 0;
         while(o != null && MAGIC.cast2Ref(o) < imageEnd) {
             part += traverseObject(o);
@@ -105,24 +104,24 @@ public class MarkAndSweep extends CommandTask {
         return count;
     }
 
-    @SJC.Inline
-    private int startAddress(Object o) {
-        return MAGIC.cast2Ref(o) - (o._r_relocEntries << 2);
-    }
-
-    @SJC.Inline
-    private int endAddress(Object o) {
-        return MAGIC.cast2Ref(o) + o._r_scalarSize;
-    }
-
     private void checkNeighbouringMarks(Object current) {
-        int endOfObject = endAddress(current);
+        int endOfObject = ImageHelper.endAddress(current);
+        int startOfObject = ImageHelper.startAddress(current);
 
         for(Object o = current._r_next; o != null; o = o._r_next) {
-            if(isMarked(o) && startAddress(o) == endOfObject) {
+//            StaticV24.printHex(endOfObject, 8);
+//            StaticV24.print(" =?= ");
+//            StaticV24.printHex(startAddress(o), 8);
+//            StaticV24.print(" or ");
+//            StaticV24.printHex(startOfObject, 8);
+//            StaticV24.print(" =?= ");
+//            StaticV24.printHex(endAddress(o), 8);
+//            StaticV24.println(".");
+
+            if(isMarked(o) && (ImageHelper.endAddress(o) == startOfObject || ImageHelper.startAddress(o) == endOfObject)) {
                 StaticV24.print(MAGIC.cast2Ref(current));
                 StaticV24.print(" borders to ");
-                StaticV24.println(MAGIC.cast2Ref(current));
+                StaticV24.println(MAGIC.cast2Ref(o));
 
                 int oSize = (o._r_relocEntries << 2) + o._r_scalarSize;
                 current._r_scalarSize += oSize;
@@ -133,7 +132,7 @@ public class MarkAndSweep extends CommandTask {
 
     private void sweep() {
         Object prev, current;
-        current = DynamicRuntime.getFirstObject();
+        current = ImageHelper.getFirstObject();
         while(current != null) {
             if(isMarked(current))
                 checkNeighbouringMarks(current);

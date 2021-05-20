@@ -42,7 +42,7 @@ public class Kernel {
         globalScheduler.addTask(new SchedulerInfoPrinter("sPrinter"));
         //globalScheduler.addTask(new LoopTask(new MarkAndSweep("mas"), 46, "mas_loop"));
 
-        commands = new CommandTask[11];
+        commands = new CommandTask[12];
         commands[0] = new AddCounter(globalScheduler, mainTerminal);
         commands[1] = new CC();
         commands[2] = new Echo(mainTerminal);
@@ -51,9 +51,10 @@ public class Kernel {
         commands[5] = new LS(mainTerminal);
         commands[6] = new MarkAndSweep();
         commands[7] = new MemLayout(globalScheduler, mainTerminal);
-        commands[8] = new PCI(mainTerminal);
-        commands[9] = new PrintEmptyObject(mainTerminal);
-        commands[10] = new Help(mainTerminal);
+        commands[8] = new ObjectViewer(mainTerminal);
+        commands[9] = new PCI(mainTerminal);
+        commands[10] = new PrintEmptyObject(mainTerminal);
+        commands[11] = new Help(mainTerminal);
 
         globalScheduler.runIndefinitely();
     }

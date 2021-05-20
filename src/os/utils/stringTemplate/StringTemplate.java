@@ -155,4 +155,11 @@ public class StringTemplate {
         nextPart();
         return this;
     }
+
+    public void p(boolean b) {
+        if(b)
+            p("true");
+        else
+            p("false");
+    }
 }

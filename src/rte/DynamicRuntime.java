@@ -249,43 +249,6 @@ public class DynamicRuntime {
         else isInstance(newEntry, dest._r_unitType, true);
     }
 
-    public static int countStaticObjects() {
-        int count = 0;
-        Object obj = MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
-        int imgEnd = MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4);
-        while(obj != null) {
-            if(MAGIC.cast2Ref(obj) < imgEnd)
-                count++;
-            obj = obj._r_next;
-        }
-
-        return count;
-    }
-
-    public static int countRuntimeObjects() {
-        int count = 0;
-        Object obj = MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
-        int imgEnd = MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4);
-        while(obj != null) {
-            if(MAGIC.cast2Ref(obj) >= imgEnd)
-                count++;
-            obj = obj._r_next;
-        }
-
-        return count;
-    }
-
-    public static int countAllObjects() {
-        int count = 0;
-        Object obj = MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
-        while(obj != null) {
-            count++;
-            obj = obj._r_next;
-        }
-
-        return count;
-    }
-
 
     public static int countEmptyObjects() {
         int count = 0;
@@ -301,8 +264,4 @@ public class DynamicRuntime {
         return count;
     }
 
-    @SJC.Inline
-    public static Object getFirstObject() {
-        return MAGIC.cast2Obj(MAGIC.rMem32(MAGIC.imageBase + 16));
-    }
 }

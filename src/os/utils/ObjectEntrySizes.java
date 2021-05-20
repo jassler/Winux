@@ -10,6 +10,7 @@ import rte.SClassDesc;
 import rte.SArray;
 import rte.SIntfMap;
 import rte.EmptyObject;
+import rte.ImageHelper;
 import rte.SMthdBlock;
 import rte.SIntfDesc;
 import os.pci.PCIDevice;
@@ -30,8 +31,8 @@ import os.interrupt.StackTraverser;
 import os.utils.StringBuffer;
 import os.utils.stringTemplate.StringTemplate;
 import os.utils.stringTemplate.Placeholder;
+import os.utils.ObjectEntrySizes;
 import os.utils.TableFormatter;
-import os.utils.ObjectRelocEntrySizes;
 import os.utils.Range;
 import os.utils.Math;
 import os.utils.OutStream;
@@ -44,12 +45,12 @@ import os.screen.Terminal;
 import os.screen.Graphic;
 import os.screen.Color;
 import os.screen.Cursor;
+import os.commands.ObjectViewer;
 import os.commands.Help;
 import os.commands.Info;
 import os.commands.LS;
 import os.commands.AddCounter;
 import os.commands.CC;
-import os.commands.MarkAndSweep;
 import os.commands.PrintEmptyObject;
 import os.commands.Echo;
 import os.commands.MemLayout;
@@ -65,9 +66,9 @@ import kernel.Sample;
 import kernel.Kernel;
 import devices.StaticV24;
 
-public class ObjectRelocEntrySizes {
+public class ObjectEntrySizes {
 
-    public static int getSizeOf(String str) {
+    public static int getInstRelocEntries(String str) {
 
         if("FLASH".equals(str)) return MAGIC.getInstRelocEntries("FLASH");
         if("Object".equals(str)) return MAGIC.getInstRelocEntries("Object");
@@ -79,6 +80,7 @@ public class ObjectRelocEntrySizes {
         if("SArray".equals(str)) return MAGIC.getInstRelocEntries("SArray");
         if("SIntfMap".equals(str)) return MAGIC.getInstRelocEntries("SIntfMap");
         if("EmptyObject".equals(str)) return MAGIC.getInstRelocEntries("EmptyObject");
+        if("ImageHelper".equals(str)) return MAGIC.getInstRelocEntries("ImageHelper");
         if("SMthdBlock".equals(str)) return MAGIC.getInstRelocEntries("SMthdBlock");
         if("SIntfDesc".equals(str)) return MAGIC.getInstRelocEntries("SIntfDesc");
         if("PCIDevice".equals(str)) return MAGIC.getInstRelocEntries("PCIDevice");
@@ -99,8 +101,8 @@ public class ObjectRelocEntrySizes {
         if("StringBuffer".equals(str)) return MAGIC.getInstRelocEntries("StringBuffer");
         if("StringTemplate".equals(str)) return MAGIC.getInstRelocEntries("StringTemplate");
         if("Placeholder".equals(str)) return MAGIC.getInstRelocEntries("Placeholder");
+        if("ObjectEntrySizes".equals(str)) return MAGIC.getInstRelocEntries("ObjectEntrySizes");
         if("TableFormatter".equals(str)) return MAGIC.getInstRelocEntries("TableFormatter");
-        if("ObjectRelocEntrySizes".equals(str)) return MAGIC.getInstRelocEntries("ObjectRelocEntrySizes");
         if("Range".equals(str)) return MAGIC.getInstRelocEntries("Range");
         if("Math".equals(str)) return MAGIC.getInstRelocEntries("Math");
         if("OutStream".equals(str)) return MAGIC.getInstRelocEntries("OutStream");
@@ -113,12 +115,12 @@ public class ObjectRelocEntrySizes {
         if("Graphic".equals(str)) return MAGIC.getInstRelocEntries("Graphic");
         if("Color".equals(str)) return MAGIC.getInstRelocEntries("Color");
         if("Cursor".equals(str)) return MAGIC.getInstRelocEntries("Cursor");
+        if("ObjectViewer".equals(str)) return MAGIC.getInstRelocEntries("ObjectViewer");
         if("Help".equals(str)) return MAGIC.getInstRelocEntries("Help");
         if("Info".equals(str)) return MAGIC.getInstRelocEntries("Info");
         if("LS".equals(str)) return MAGIC.getInstRelocEntries("LS");
         if("AddCounter".equals(str)) return MAGIC.getInstRelocEntries("AddCounter");
         if("CC".equals(str)) return MAGIC.getInstRelocEntries("CC");
-        if("MarkAndSweep".equals(str)) return MAGIC.getInstRelocEntries("MarkAndSweep");
         if("PrintEmptyObject".equals(str)) return MAGIC.getInstRelocEntries("PrintEmptyObject");
         if("Echo".equals(str)) return MAGIC.getInstRelocEntries("Echo");
         if("MemLayout".equals(str)) return MAGIC.getInstRelocEntries("MemLayout");
@@ -137,6 +139,77 @@ public class ObjectRelocEntrySizes {
         return -1;
     }
 
+    public static int getInstScalarEntries(String str) {
+
+        if("FLASH".equals(str)) return MAGIC.getInstScalarSize("FLASH");
+        if("Object".equals(str)) return MAGIC.getInstScalarSize("Object");
+        if("String".equals(str)) return MAGIC.getInstScalarSize("String");
+        if("BIOS".equals(str)) return MAGIC.getInstScalarSize("BIOS");
+        if("STRUCT".equals(str)) return MAGIC.getInstScalarSize("STRUCT");
+        if("DynamicRuntime".equals(str)) return MAGIC.getInstScalarSize("DynamicRuntime");
+        if("SClassDesc".equals(str)) return MAGIC.getInstScalarSize("SClassDesc");
+        if("SArray".equals(str)) return MAGIC.getInstScalarSize("SArray");
+        if("SIntfMap".equals(str)) return MAGIC.getInstScalarSize("SIntfMap");
+        if("EmptyObject".equals(str)) return MAGIC.getInstScalarSize("EmptyObject");
+        if("ImageHelper".equals(str)) return MAGIC.getInstScalarSize("ImageHelper");
+        if("SMthdBlock".equals(str)) return MAGIC.getInstScalarSize("SMthdBlock");
+        if("SIntfDesc".equals(str)) return MAGIC.getInstScalarSize("SIntfDesc");
+        if("PCIDevice".equals(str)) return MAGIC.getInstScalarSize("PCIDevice");
+        if("PCIController".equals(str)) return MAGIC.getInstScalarSize("PCIController");
+        if("TerminalTask".equals(str)) return MAGIC.getInstScalarSize("TerminalTask");
+        if("TerminalPrompter".equals(str)) return MAGIC.getInstScalarSize("TerminalPrompter");
+        if("Counter".equals(str)) return MAGIC.getInstScalarSize("Counter");
+        if("MarkAndSweep".equals(str)) return MAGIC.getInstScalarSize("MarkAndSweep");
+        if("SchedulerInfoPrinter".equals(str)) return MAGIC.getInstScalarSize("SchedulerInfoPrinter");
+        if("CommandTask".equals(str)) return MAGIC.getInstScalarSize("CommandTask");
+        if("DelayTask".equals(str)) return MAGIC.getInstScalarSize("DelayTask");
+        if("LoopTask".equals(str)) return MAGIC.getInstScalarSize("LoopTask");
+        if("Task".equals(str)) return MAGIC.getInstScalarSize("Task");
+        if("Handler".equals(str)) return MAGIC.getInstScalarSize("Handler");
+        if("Interrupt".equals(str)) return MAGIC.getInstScalarSize("Interrupt");
+        if("BlueScreen".equals(str)) return MAGIC.getInstScalarSize("BlueScreen");
+        if("StackTraverser".equals(str)) return MAGIC.getInstScalarSize("StackTraverser");
+        if("StringBuffer".equals(str)) return MAGIC.getInstScalarSize("StringBuffer");
+        if("StringTemplate".equals(str)) return MAGIC.getInstScalarSize("StringTemplate");
+        if("Placeholder".equals(str)) return MAGIC.getInstScalarSize("Placeholder");
+        if("ObjectEntrySizes".equals(str)) return MAGIC.getInstScalarSize("ObjectEntrySizes");
+        if("TableFormatter".equals(str)) return MAGIC.getInstScalarSize("TableFormatter");
+        if("Range".equals(str)) return MAGIC.getInstScalarSize("Range");
+        if("Math".equals(str)) return MAGIC.getInstScalarSize("Math");
+        if("OutStream".equals(str)) return MAGIC.getInstScalarSize("OutStream");
+        if("NumberHelper".equals(str)) return MAGIC.getInstScalarSize("NumberHelper");
+        if("FileSystem".equals(str)) return MAGIC.getInstScalarSize("FileSystem");
+        if("FileStream".equals(str)) return MAGIC.getInstScalarSize("FileStream");
+        if("File".equals(str)) return MAGIC.getInstScalarSize("File");
+        if("GraphicLogo".equals(str)) return MAGIC.getInstScalarSize("GraphicLogo");
+        if("Terminal".equals(str)) return MAGIC.getInstScalarSize("Terminal");
+        if("Graphic".equals(str)) return MAGIC.getInstScalarSize("Graphic");
+        if("Color".equals(str)) return MAGIC.getInstScalarSize("Color");
+        if("Cursor".equals(str)) return MAGIC.getInstScalarSize("Cursor");
+        if("ObjectViewer".equals(str)) return MAGIC.getInstScalarSize("ObjectViewer");
+        if("Help".equals(str)) return MAGIC.getInstScalarSize("Help");
+        if("Info".equals(str)) return MAGIC.getInstScalarSize("Info");
+        if("LS".equals(str)) return MAGIC.getInstScalarSize("LS");
+        if("AddCounter".equals(str)) return MAGIC.getInstScalarSize("AddCounter");
+        if("CC".equals(str)) return MAGIC.getInstScalarSize("CC");
+        if("PrintEmptyObject".equals(str)) return MAGIC.getInstScalarSize("PrintEmptyObject");
+        if("Echo".equals(str)) return MAGIC.getInstScalarSize("Echo");
+        if("MemLayout".equals(str)) return MAGIC.getInstScalarSize("MemLayout");
+        if("PCI".equals(str)) return MAGIC.getInstScalarSize("PCI");
+        if("Editor".equals(str)) return MAGIC.getInstScalarSize("Editor");
+        if("ASCII".equals(str)) return MAGIC.getInstScalarSize("ASCII");
+        if("KeyBuffer".equals(str)) return MAGIC.getInstScalarSize("KeyBuffer");
+        if("KeyboardController".equals(str)) return MAGIC.getInstScalarSize("KeyboardController");
+        if("QWERTY".equals(str)) return MAGIC.getInstScalarSize("QWERTY");
+        if("KeyEvent".equals(str)) return MAGIC.getInstScalarSize("KeyEvent");
+        if("Scheduler".equals(str)) return MAGIC.getInstScalarSize("Scheduler");
+        if("Sample".equals(str)) return MAGIC.getInstScalarSize("Sample");
+        if("Kernel".equals(str)) return MAGIC.getInstScalarSize("Kernel");
+        if("StaticV24".equals(str)) return MAGIC.getInstScalarSize("StaticV24");
+
+        return -1;
+    }
+
     public static void printPossibilities(Terminal out) {
 
         out.print("FLASH ");
@@ -149,6 +222,7 @@ public class ObjectRelocEntrySizes {
         out.print("SArray ");
         out.print("SIntfMap ");
         out.print("EmptyObject ");
+        out.print("ImageHelper ");
         out.print("SMthdBlock ");
         out.print("SIntfDesc ");
         out.print("PCIDevice ");
@@ -169,8 +243,8 @@ public class ObjectRelocEntrySizes {
         out.print("StringBuffer ");
         out.print("StringTemplate ");
         out.print("Placeholder ");
+        out.print("ObjectEntrySizes ");
         out.print("TableFormatter ");
-        out.print("ObjectRelocEntrySizes ");
         out.print("Range ");
         out.print("Math ");
         out.print("OutStream ");
@@ -183,12 +257,12 @@ public class ObjectRelocEntrySizes {
         out.print("Graphic ");
         out.print("Color ");
         out.print("Cursor ");
+        out.print("ObjectViewer ");
         out.print("Help ");
         out.print("Info ");
         out.print("LS ");
         out.print("AddCounter ");
         out.print("CC ");
-        out.print("MarkAndSweep ");
         out.print("PrintEmptyObject ");
         out.print("Echo ");
         out.print("MemLayout ");

@@ -3,8 +3,9 @@ package os.commands;
 import kernel.Kernel;
 import os.screen.Terminal;
 import os.tasks.CommandTask;
-import os.utils.ObjectRelocEntrySizes;
+import os.utils.ObjectEntrySizes;
 import rte.DynamicRuntime;
+import rte.ImageHelper;
 
 public class Info extends CommandTask {
 
@@ -30,7 +31,7 @@ public class Info extends CommandTask {
                 infoReading = OBJECTS;
             else if(args[1].equals("tasks"))
                 infoReading = TASKS;
-            else if(args[1].equals("reloc")) {
+            else if(args[1].equals("entry")) {
                 infoReading = RELOC;
                 more = (args.length < 3) ? null : args[2];
             }
@@ -41,7 +42,7 @@ public class Info extends CommandTask {
             out.println("  imageBase    - Information about the image base");
             out.println("  objects      - How many objects have been created");
             out.println("  tasks        - List active tasks");
-            out.println("  reloc [[obj]]- Get relocEntries of object");
+            out.println("  entry [[obj]]- reloc and scalar entries of [[obj]]");
             setDone(true);
         } else {
             setDone(false);
@@ -67,21 +68,26 @@ public class Info extends CommandTask {
             case RELOC:
                 if(more == null) {
                     out.println("Try one of the following");
-                    ObjectRelocEntrySizes.printPossibilities(out);
+                    ObjectEntrySizes.printPossibilities(out);
                     break;
                 }
 
-                int size = ObjectRelocEntrySizes.getSizeOf(more);
-                if(size < 0) {
+                int relocs = ObjectEntrySizes.getInstRelocEntries(more);
+                int scalars = ObjectEntrySizes.getInstScalarEntries(more);
+                if(relocs < 0) {
                     out.print(more);
                     out.println(" not found, try one of those:");
-                    ObjectRelocEntrySizes.printPossibilities(out);
+                    ObjectEntrySizes.printPossibilities(out);
                 } else {
-                    out.print(size);
+                    out.print(relocs);
                     out.println(" reloc entries");
+                    out.print(scalars);
+                    out.println(" scalars");
                 }
                 break;
         }
+
+
 
         setDone(true);
     }
@@ -100,11 +106,11 @@ public class Info extends CommandTask {
 
     private void printObjectsInfo() {
         out.print("Static objects : ");
-        out.println(DynamicRuntime.countStaticObjects());
+        out.println(ImageHelper.countStaticObjects());
         out.print("Dynamic objects: ");
-        out.println(DynamicRuntime.countRuntimeObjects());
+        out.println(ImageHelper.countRuntimeObjects());
         out.print("All objects    : ");
-        out.println(DynamicRuntime.countAllObjects());
+        out.println(ImageHelper.countAllObjects());
         out.print("Empty objects  : ");
         out.println(DynamicRuntime.countEmptyObjects());
     }
