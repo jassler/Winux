@@ -45,6 +45,7 @@ import os.screen.Terminal;
 import os.screen.Graphic;
 import os.screen.Color;
 import os.screen.Cursor;
+import os.commands.Page;
 import os.commands.ObjectViewer;
 import os.commands.Help;
 import os.commands.Info;
@@ -61,6 +62,7 @@ import os.keyboard.KeyBuffer;
 import os.keyboard.KeyboardController;
 import os.keyboard.layout.QWERTY;
 import os.keyboard.KeyEvent;
+import os.virtualMemory.VirtualMemory;
 import kernel.Scheduler;
 import kernel.Sample;
 import kernel.Kernel;
@@ -115,6 +117,7 @@ public class ObjectEntrySizes {
         if("Graphic".equals(str)) return MAGIC.getInstRelocEntries("Graphic");
         if("Color".equals(str)) return MAGIC.getInstRelocEntries("Color");
         if("Cursor".equals(str)) return MAGIC.getInstRelocEntries("Cursor");
+        if("Page".equals(str)) return MAGIC.getInstRelocEntries("Page");
         if("ObjectViewer".equals(str)) return MAGIC.getInstRelocEntries("ObjectViewer");
         if("Help".equals(str)) return MAGIC.getInstRelocEntries("Help");
         if("Info".equals(str)) return MAGIC.getInstRelocEntries("Info");
@@ -131,6 +134,7 @@ public class ObjectEntrySizes {
         if("KeyboardController".equals(str)) return MAGIC.getInstRelocEntries("KeyboardController");
         if("QWERTY".equals(str)) return MAGIC.getInstRelocEntries("QWERTY");
         if("KeyEvent".equals(str)) return MAGIC.getInstRelocEntries("KeyEvent");
+        if("VirtualMemory".equals(str)) return MAGIC.getInstRelocEntries("VirtualMemory");
         if("Scheduler".equals(str)) return MAGIC.getInstRelocEntries("Scheduler");
         if("Sample".equals(str)) return MAGIC.getInstRelocEntries("Sample");
         if("Kernel".equals(str)) return MAGIC.getInstRelocEntries("Kernel");
@@ -186,6 +190,7 @@ public class ObjectEntrySizes {
         if("Graphic".equals(str)) return MAGIC.getInstScalarSize("Graphic");
         if("Color".equals(str)) return MAGIC.getInstScalarSize("Color");
         if("Cursor".equals(str)) return MAGIC.getInstScalarSize("Cursor");
+        if("Page".equals(str)) return MAGIC.getInstScalarSize("Page");
         if("ObjectViewer".equals(str)) return MAGIC.getInstScalarSize("ObjectViewer");
         if("Help".equals(str)) return MAGIC.getInstScalarSize("Help");
         if("Info".equals(str)) return MAGIC.getInstScalarSize("Info");
@@ -202,6 +207,7 @@ public class ObjectEntrySizes {
         if("KeyboardController".equals(str)) return MAGIC.getInstScalarSize("KeyboardController");
         if("QWERTY".equals(str)) return MAGIC.getInstScalarSize("QWERTY");
         if("KeyEvent".equals(str)) return MAGIC.getInstScalarSize("KeyEvent");
+        if("VirtualMemory".equals(str)) return MAGIC.getInstScalarSize("VirtualMemory");
         if("Scheduler".equals(str)) return MAGIC.getInstScalarSize("Scheduler");
         if("Sample".equals(str)) return MAGIC.getInstScalarSize("Sample");
         if("Kernel".equals(str)) return MAGIC.getInstScalarSize("Kernel");
@@ -257,6 +263,7 @@ public class ObjectEntrySizes {
         out.print("Graphic ");
         out.print("Color ");
         out.print("Cursor ");
+        out.print("Page ");
         out.print("ObjectViewer ");
         out.print("Help ");
         out.print("Info ");
@@ -273,6 +280,7 @@ public class ObjectEntrySizes {
         out.print("KeyboardController ");
         out.print("QWERTY ");
         out.print("KeyEvent ");
+        out.print("VirtualMemory ");
         out.print("Scheduler ");
         out.print("Sample ");
         out.print("Kernel ");
