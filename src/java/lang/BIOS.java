@@ -326,7 +326,6 @@ public class BIOS {
             BIOS.regs.ECX = 20;
 
             BIOS.rint(0x15);
-
             ebx = BIOS.regs.EBX;
 
             // is done?

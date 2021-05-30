@@ -1,7 +1,9 @@
 package os.commands;
 
+import devices.StaticV24;
 import os.screen.Terminal;
 import os.tasks.CommandTask;
+import rte.SPackage;
 
 public class Echo extends CommandTask {
     private String[] args;

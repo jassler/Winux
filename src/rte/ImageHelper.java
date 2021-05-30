@@ -126,4 +126,12 @@ public class ImageHelper {
     public static int endAddress(int ref, int scalarSize) {
         return ref + ((scalarSize+3)&~3);
     }
+
+    /**
+     * Find address that aligns to 4kb, thus setting the last 12 bits to 0.
+     */
+    @SJC.Inline
+    public static int align4kBAddress(int address) {
+        return (address + 0xFFF) & ~0xFFF;
+    }
 }

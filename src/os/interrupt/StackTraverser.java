@@ -16,9 +16,9 @@ public class StackTraverser {
         MAGIC.inline(0x89,0x6D);
         MAGIC.inlineOffset(1,ebp);
 
-        // 9 PUSHA register values
-        StackTraverser.eip = MAGIC.rMem32(ebp + (9 << 2));
-        StackTraverser.ebp = MAGIC.rMem32(ebp);
+//        // 9 PUSHA register values
+        StackTraverser.eip = MAGIC.rMem32(ebp + 4);
+//        StackTraverser.ebp = MAGIC.rMem32(ebp);
     }
 
     @SJC.Inline

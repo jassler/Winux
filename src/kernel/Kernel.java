@@ -9,11 +9,10 @@ import os.interrupt.Handler;
 import os.interrupt.Interrupt;
 import os.screen.Terminal;
 import os.tasks.*;
-import os.tasks.specificTasks.Counter;
 import os.tasks.specificTasks.MarkAndSweep;
 import os.tasks.specificTasks.SchedulerInfoPrinter;
 import os.tasks.specificTasks.TerminalTask;
-import os.virtualMemory.VirtualMemory;
+import os.utils.MethodFinder;
 
 public class Kernel {
 
@@ -66,6 +65,7 @@ public class Kernel {
 
         globalScheduler.runIndefinitely();
     }
+
 
     public static void sleep(int seconds) {
         // https://wiki.osdev.org/PIT

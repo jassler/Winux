@@ -1,6 +1,7 @@
 package rte;
 
 import devices.StaticV24;
+import os.virtualMemory.VirtualMemory;
 
 public class DynamicRuntime {
 
@@ -19,16 +20,20 @@ public class DynamicRuntime {
         return obj;
     }
 
-    public static void initEmptyObjects() {
+    public static void initEmptyObjects(int firstFreeAddress) {
         int from, to, i;
         Object newObject;
         EmptyObject emptyObj, lastEmptyObj;
 
-        int firstFreeAddress = (MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4) + 0xFFF) & ~0xFFF;
+        firstFreeAddress = (MAGIC.imageBase + MAGIC.rMem32(MAGIC.imageBase + 4) + 0xFFF) & ~0xFFF;
         lastEmptyObj = null;
 
         StaticV24.print("EmptyObject relocs: ");
         StaticV24.println(MAGIC.getInstRelocEntries("EmptyObject"));
+        StaticV24.print("firstFreeAddress: ");
+        StaticV24.printHexln(firstFreeAddress);
+
+
 
         BIOS.SMG.reset(0x8000);
 
@@ -77,12 +82,15 @@ public class DynamicRuntime {
     }
 
     public static Object newInstance(int scalarSize, int relocEntries, SClassDesc type) {
-        int sizeRequired, rs;
         EmptyObject space;
         Object o;
 
         if(firstEmptyObject == null) {
-            initEmptyObjects();
+            // one can only wish...
+//            int nextFreeAddress = VirtualMemory.initVirtualMemory();
+//            initEmptyObjects(nextFreeAddress);
+
+            initEmptyObjects(ImageHelper.align4kBAddress(ImageHelper.getImageEnd()));
         }
 
         // do we take the risk that we may not have found any free disk space and firstEmptyObject therefore is null?

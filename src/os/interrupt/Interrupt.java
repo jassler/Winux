@@ -84,6 +84,7 @@ public class Interrupt {
         MAGIC.inline(0x0F, 0x01, 0x5D);
         MAGIC.inlineOffset(1, tmp);
 
+
         // "Set Interrupt Flag", enable interrupts
         MAGIC.inline(0xFB);
     }
@@ -117,8 +118,10 @@ public class Interrupt {
     }
 
     public static void lidtRM() {
-        int tableLimit = 8 * 48; // Byte count in table
-        long tmp = (long) IDT_START | (long) tableLimit; // 0 is the table base address
+//        int tableLimit = 8 * 48; // Byte count in table
+//        long tmp = (long) IDT_START | (long) tableLimit; // 0 is the table base address
+        int tableLimit = 4 * 48; // Byte count in table
+        long tmp = (long) 0 | (long) tableLimit; // 0 is the table base address
         MAGIC.inline(0x0F, 0x01, 0x5D);
         MAGIC.inlineOffset(1, tmp); // lidt [ebp-0x08/tmp]
     }

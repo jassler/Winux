@@ -11,6 +11,7 @@ import rte.SArray;
 import rte.SIntfMap;
 import rte.EmptyObject;
 import rte.ImageHelper;
+import rte.SPackage;
 import rte.SMthdBlock;
 import rte.SIntfDesc;
 import os.pci.PCIDevice;
@@ -32,7 +33,7 @@ import os.utils.StringBuffer;
 import os.utils.stringTemplate.StringTemplate;
 import os.utils.stringTemplate.Placeholder;
 import os.utils.ObjectEntrySizes;
-import os.utils.TableFormatter;
+import os.utils.MethodFinder;
 import os.utils.Range;
 import os.utils.Math;
 import os.utils.OutStream;
@@ -64,7 +65,6 @@ import os.keyboard.layout.QWERTY;
 import os.keyboard.KeyEvent;
 import os.virtualMemory.VirtualMemory;
 import kernel.Scheduler;
-import kernel.Sample;
 import kernel.Kernel;
 import devices.StaticV24;
 
@@ -83,6 +83,7 @@ public class ObjectEntrySizes {
         if("SIntfMap".equals(str)) return MAGIC.getInstRelocEntries("SIntfMap");
         if("EmptyObject".equals(str)) return MAGIC.getInstRelocEntries("EmptyObject");
         if("ImageHelper".equals(str)) return MAGIC.getInstRelocEntries("ImageHelper");
+        if("SPackage".equals(str)) return MAGIC.getInstRelocEntries("SPackage");
         if("SMthdBlock".equals(str)) return MAGIC.getInstRelocEntries("SMthdBlock");
         if("SIntfDesc".equals(str)) return MAGIC.getInstRelocEntries("SIntfDesc");
         if("PCIDevice".equals(str)) return MAGIC.getInstRelocEntries("PCIDevice");
@@ -104,7 +105,7 @@ public class ObjectEntrySizes {
         if("StringTemplate".equals(str)) return MAGIC.getInstRelocEntries("StringTemplate");
         if("Placeholder".equals(str)) return MAGIC.getInstRelocEntries("Placeholder");
         if("ObjectEntrySizes".equals(str)) return MAGIC.getInstRelocEntries("ObjectEntrySizes");
-        if("TableFormatter".equals(str)) return MAGIC.getInstRelocEntries("TableFormatter");
+        if("MethodFinder".equals(str)) return MAGIC.getInstRelocEntries("MethodFinder");
         if("Range".equals(str)) return MAGIC.getInstRelocEntries("Range");
         if("Math".equals(str)) return MAGIC.getInstRelocEntries("Math");
         if("OutStream".equals(str)) return MAGIC.getInstRelocEntries("OutStream");
@@ -136,7 +137,6 @@ public class ObjectEntrySizes {
         if("KeyEvent".equals(str)) return MAGIC.getInstRelocEntries("KeyEvent");
         if("VirtualMemory".equals(str)) return MAGIC.getInstRelocEntries("VirtualMemory");
         if("Scheduler".equals(str)) return MAGIC.getInstRelocEntries("Scheduler");
-        if("Sample".equals(str)) return MAGIC.getInstRelocEntries("Sample");
         if("Kernel".equals(str)) return MAGIC.getInstRelocEntries("Kernel");
         if("StaticV24".equals(str)) return MAGIC.getInstRelocEntries("StaticV24");
 
@@ -156,6 +156,7 @@ public class ObjectEntrySizes {
         if("SIntfMap".equals(str)) return MAGIC.getInstScalarSize("SIntfMap");
         if("EmptyObject".equals(str)) return MAGIC.getInstScalarSize("EmptyObject");
         if("ImageHelper".equals(str)) return MAGIC.getInstScalarSize("ImageHelper");
+        if("SPackage".equals(str)) return MAGIC.getInstScalarSize("SPackage");
         if("SMthdBlock".equals(str)) return MAGIC.getInstScalarSize("SMthdBlock");
         if("SIntfDesc".equals(str)) return MAGIC.getInstScalarSize("SIntfDesc");
         if("PCIDevice".equals(str)) return MAGIC.getInstScalarSize("PCIDevice");
@@ -177,7 +178,7 @@ public class ObjectEntrySizes {
         if("StringTemplate".equals(str)) return MAGIC.getInstScalarSize("StringTemplate");
         if("Placeholder".equals(str)) return MAGIC.getInstScalarSize("Placeholder");
         if("ObjectEntrySizes".equals(str)) return MAGIC.getInstScalarSize("ObjectEntrySizes");
-        if("TableFormatter".equals(str)) return MAGIC.getInstScalarSize("TableFormatter");
+        if("MethodFinder".equals(str)) return MAGIC.getInstScalarSize("MethodFinder");
         if("Range".equals(str)) return MAGIC.getInstScalarSize("Range");
         if("Math".equals(str)) return MAGIC.getInstScalarSize("Math");
         if("OutStream".equals(str)) return MAGIC.getInstScalarSize("OutStream");
@@ -209,7 +210,6 @@ public class ObjectEntrySizes {
         if("KeyEvent".equals(str)) return MAGIC.getInstScalarSize("KeyEvent");
         if("VirtualMemory".equals(str)) return MAGIC.getInstScalarSize("VirtualMemory");
         if("Scheduler".equals(str)) return MAGIC.getInstScalarSize("Scheduler");
-        if("Sample".equals(str)) return MAGIC.getInstScalarSize("Sample");
         if("Kernel".equals(str)) return MAGIC.getInstScalarSize("Kernel");
         if("StaticV24".equals(str)) return MAGIC.getInstScalarSize("StaticV24");
 
@@ -229,6 +229,7 @@ public class ObjectEntrySizes {
         out.print("SIntfMap ");
         out.print("EmptyObject ");
         out.print("ImageHelper ");
+        out.print("SPackage ");
         out.print("SMthdBlock ");
         out.print("SIntfDesc ");
         out.print("PCIDevice ");
@@ -250,7 +251,7 @@ public class ObjectEntrySizes {
         out.print("StringTemplate ");
         out.print("Placeholder ");
         out.print("ObjectEntrySizes ");
-        out.print("TableFormatter ");
+        out.print("MethodFinder ");
         out.print("Range ");
         out.print("Math ");
         out.print("OutStream ");
@@ -282,7 +283,6 @@ public class ObjectEntrySizes {
         out.print("KeyEvent ");
         out.print("VirtualMemory ");
         out.print("Scheduler ");
-        out.print("Sample ");
         out.print("Kernel ");
         out.print("StaticV24 ");
 
