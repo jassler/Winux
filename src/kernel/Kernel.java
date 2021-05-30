@@ -1,5 +1,6 @@
 package kernel;
 
+import devices.StaticV24;
 import os.commands.*;
 import os.editor.Editor;
 import os.filesystem.File;
@@ -12,6 +13,7 @@ import os.tasks.specificTasks.Counter;
 import os.tasks.specificTasks.MarkAndSweep;
 import os.tasks.specificTasks.SchedulerInfoPrinter;
 import os.tasks.specificTasks.TerminalTask;
+import os.virtualMemory.VirtualMemory;
 
 public class Kernel {
 
@@ -21,6 +23,11 @@ public class Kernel {
     public static void main() {
         MAGIC.doStaticInit();
         Interrupt.initPic();
+
+//        VirtualMemory.initPageDirectory();
+
+//        VirtualMemory.setCR3(((MAGIC.cast2Ref(VirtualMemory.pageDirectory) / (1024)) << 12) | 3);
+//        VirtualMemory.enableVirtualMemory();
 
 
         BIOS.switchMode(BIOS.GRAPHICS_MODE);
@@ -42,7 +49,7 @@ public class Kernel {
         globalScheduler.addTask(new SchedulerInfoPrinter("sPrinter"));
         //globalScheduler.addTask(new LoopTask(new MarkAndSweep("mas"), 46, "mas_loop"));
 
-        commands = new CommandTask[12];
+        commands = new CommandTask[13];
         commands[0] = new AddCounter(globalScheduler, mainTerminal);
         commands[1] = new CC();
         commands[2] = new Echo(mainTerminal);
@@ -52,9 +59,10 @@ public class Kernel {
         commands[6] = new MarkAndSweep();
         commands[7] = new MemLayout(globalScheduler, mainTerminal);
         commands[8] = new ObjectViewer(mainTerminal);
-        commands[9] = new PCI(mainTerminal);
-        commands[10] = new PrintEmptyObject(mainTerminal);
-        commands[11] = new Help(mainTerminal);
+        commands[9] = new Page(mainTerminal);
+        commands[10] = new PCI(mainTerminal);
+        commands[11] = new PrintEmptyObject(mainTerminal);
+        commands[12] = new Help(mainTerminal);
 
         globalScheduler.runIndefinitely();
     }
