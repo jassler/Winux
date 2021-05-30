@@ -264,4 +264,8 @@ public class DynamicRuntime {
         return count;
     }
 
+    public static void nullException() {
+        StaticV24.println("np");
+        MAGIC.inline(0xCC);
+    }
 }
