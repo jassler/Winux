@@ -2,12 +2,13 @@ package os.tasks.specificTasks;
 
 import devices.StaticV24;
 import os.tasks.CommandTask;
+import rte.DynamicRuntime;
 import rte.EmptyObject;
 import rte.ImageHelper;
 
 public class MarkAndSweep extends CommandTask {
 
-    private static final int negBit = 1 << 32;
+    private static final int negBit = 1 << 31;
 
     @SJC.Inline
     private static void mark(Object o) {
@@ -24,6 +25,7 @@ public class MarkAndSweep extends CommandTask {
         return (o._r_scalarSize & negBit) != 0;
     }
 
+    private EmptyObject lastEmptyObject;
 
     public MarkAndSweep() {
         super("sweep", "Apply mark and sweep", null);
@@ -38,6 +40,12 @@ public class MarkAndSweep extends CommandTask {
         // "Clear Interrupt Flag", disable interrupts
         MAGIC.inline(0xFA);
 
+        StaticV24.printHex(DynamicRuntime.firstEmptyObject._r_scalarSize, 8);
+        StaticV24.println();
+
+        /*
+         * MARK
+         */
         StaticV24.println("Marking objects...");
         o = ImageHelper.getFirstObject();
         total = 0;
@@ -51,6 +59,9 @@ public class MarkAndSweep extends CommandTask {
         StaticV24.print(total);
         StaticV24.println(" objects");
 
+        /*
+         * TRAVERSE
+         */
         StaticV24.println("Checking which ones can be sweeped...");
         o = ImageHelper.getFirstObject();
         part = 0;
@@ -61,31 +72,52 @@ public class MarkAndSweep extends CommandTask {
         StaticV24.print(part);
         StaticV24.println(" objects will stay");
 
+        /*
+         * SWEEP
+         */
         StaticV24.println("Sweeping...");
-        sweep();
+        lastEmptyObject = DynamicRuntime.firstEmptyObject;
+        while(lastEmptyObject.next != null)
+            lastEmptyObject = lastEmptyObject.next;
 
+        part = sweep();
+
+        StaticV24.print("Sweeped ");
+        StaticV24.print(part);
+        StaticV24.print(" of ");
+        StaticV24.print(total);
+        StaticV24.println(" objects");
         // "Set Interrupt Flag", enable interrupts
         MAGIC.inline(0xFB);
+
+
+        out.print(part);
+        out.print(" of ");
+        out.print(total);
+        out.println(" objects sweeped.");
         setDone(true);
     }
 
+    /**
+     * If object is marked, go through each of its relocEntries and recursively unmark them as well.
+     *
+     * @param o Marked object. If o is unmarked, it is ignored.
+     * @return Number of objects unmarked. If o is unmarked, it returns 0, else at least 1.
+     */
     private int traverseObject(Object o) {
-        int i, relocs, relocRef, count;
+        int i, addr, relocRef, count;
 
-        if(!isMarked(o) || o instanceof EmptyObject) {
-            // already marked, nothing to traverse (since all objects below are also marked)
-            StaticV24.printHex(MAGIC.cast2Ref(o), 8);
-            StaticV24.println(" already unmarked");
+        if(!isMarked(o)) {
+            // already unmarked, nothing to traverse (since all objects below are also unmarked)
             return 0;
         }
 
-        relocs = o._r_relocEntries - MAGIC.getInstRelocEntries("Object");
-        relocRef = MAGIC.cast2Ref(o) - 8;
+        addr = MAGIC.cast2Ref(o);
 
         unmark(o);
 
         count = 1;
-        for(i = 0; i < relocs; i++) {
+        for(i = 3; i < o._r_relocEntries; i++) {
             // Object layout (each > is 8 byte)
             // > ...
             // > Inst-Reloc 2
@@ -97,47 +129,91 @@ public class MarkAndSweep extends CommandTask {
             // > Inst-Ska 1
             // > Inst-Ska 2
             // > ...
-            count += traverseObject(MAGIC.cast2Obj(MAGIC.rMem32(relocRef)));
-            relocRef -= 4;
+            count += traverseObject(MAGIC.cast2Obj(MAGIC.rMem32(addr - i * MAGIC.ptrSize)));
         }
 
         return count;
     }
 
-    private void checkNeighbouringMarks(Object current) {
+    /**
+     * Resize sweepable object depending on how many of its neighboring objects can also be sweeped.
+     *
+     * (!) The negative bit is removed in this process (!)
+     *
+     * _r_next and _r_scalarSize are therefore automatically adjusted.
+     *
+     * @return number of neighbouring objects sweeped (including {@code current}, so at least 1)
+     */
+    private int checkNeighbouringMarks(Object current) {
+        Object o;
+        int oSize;
         int endOfObject = ImageHelper.endAddress(current);
         int startOfObject = ImageHelper.startAddress(current);
 
-        for(Object o = current._r_next; o != null; o = o._r_next) {
-//            StaticV24.printHex(endOfObject, 8);
-//            StaticV24.print(" =?= ");
-//            StaticV24.printHex(startAddress(o), 8);
-//            StaticV24.print(" or ");
-//            StaticV24.printHex(startOfObject, 8);
-//            StaticV24.print(" =?= ");
-//            StaticV24.printHex(endAddress(o), 8);
-//            StaticV24.println(".");
+        int sweeped = 1;
+        unmark(current);
+        for(o = current._r_next; o != null; o = o._r_next) {
 
             if(isMarked(o) && (ImageHelper.endAddress(o) == startOfObject || ImageHelper.startAddress(o) == endOfObject)) {
-                StaticV24.print(MAGIC.cast2Ref(current));
-                StaticV24.print(" borders to ");
-                StaticV24.println(MAGIC.cast2Ref(o));
+                current._r_next = o._r_next;
 
-                int oSize = (o._r_relocEntries << 2) + o._r_scalarSize;
+                unmark(o);
+                oSize = (o._r_relocEntries * MAGIC.ptrSize) + o._r_scalarSize;
                 current._r_scalarSize += oSize;
                 endOfObject += oSize;
+                sweeped++;
             }
         }
+
+        return sweeped;
     }
 
-    private void sweep() {
-        Object prev, current;
+    /**
+     * Sweep all sweepable objects. Objects are sweepable that have the negative bit set in _r_scalarSize.
+     *
+     * @return number of objects sweeped
+     */
+    private int sweep() {
+        Object current;
+        int sweeped = 0;
+
         current = ImageHelper.getFirstObject();
         while(current != null) {
-            if(isMarked(current))
-                checkNeighbouringMarks(current);
+            if(isMarked(current)) {
+                sweeped += checkNeighbouringMarks(current);
+                addEmptyObject(current);
+            }
             current = current._r_next;
         }
+        return sweeped;
+    }
+
+    /**
+     * Turn object into EmptyObject
+     */
+    private void addEmptyObject(Object obj) {
+        int address = ImageHelper.startAddress(obj) + (MAGIC.getInstRelocEntries("EmptyObject") * MAGIC.ptrSize);
+        int scalarSize = ImageHelper.endAddress(obj) - address;
+        EmptyObject emptyObj;
+
+        for (int i = ImageHelper.startAddress(obj); i < ImageHelper.endAddress(obj); i+=4) {
+            MAGIC.wMem32(i, 0);
+        }
+
+        obj = MAGIC.cast2Obj(address);
+        MAGIC.assign(obj._r_relocEntries, MAGIC.getInstRelocEntries("EmptyObject"));
+        MAGIC.assign(obj._r_type, MAGIC.clssDesc("EmptyObject"));
+
+        // make sure to reserve the entire memory available
+        MAGIC.assign(obj._r_scalarSize, scalarSize);
+
+
+        emptyObj = (EmptyObject) obj;
+        emptyObj.prev = emptyObj;
+        emptyObj.next = null;
+
+        lastEmptyObject.next = emptyObj;
+        lastEmptyObject = emptyObj;
     }
 
     @Override
