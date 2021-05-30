@@ -7,7 +7,7 @@ public class EmptyObject {
     // the way EmptyObject is initialized, these attributes are not set (!)
     // null or 0 by default, prev must be set outside (not set to "this" as shown here!)
     public EmptyObject next = null;
-    protected Object prev = this;
+    public Object prev = this;
 
     /**
      * Add new object to EmptyObject. If successful, _r_scalarSize of this EmptyObject
