@@ -73,6 +73,10 @@ public class StaticV24 {
         doWriteInt(x);
     }
 
+    public static void printHex(int i) {
+        printHex(i, 8);
+    }
+
     public static void printHex(int i, int digits) {
         int v, p;
 
@@ -81,6 +85,15 @@ public class StaticV24 {
             if (v<10) print((char)(v+'0')); //'0'..'9'
             else print((char)(v+('A'-10))); //'A'..'Z'
         }
+    }
+
+    public static void printHexln(int i) {
+        printHexln(i, 8);
+    }
+
+    public static void printHexln(int i, int digits) {
+        printHex(i, digits);
+        println();
     }
 
     public static void print(long x) {
